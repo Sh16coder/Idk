@@ -831,6 +831,170 @@
             .message {
                 max-width: 90%;
             }
+            /* Enhanced Admin Styles */
+.message.admin {
+    align-self: flex-start;
+    background: linear-gradient(135deg, #ffd700, #ff6b00);
+    color: #000;
+    border-bottom-left-radius: 5px;
+    margin-left: 10px;
+}
+
+.admin-badge {
+    font-size: 0.8rem;
+    font-weight: bold;
+    margin-bottom: 0.5rem;
+    color: #000;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.user-badge {
+    font-size: 0.8rem;
+    font-weight: bold;
+    margin-bottom: 0.5rem;
+    color: var(--text-secondary);
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.message-footer {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 0.5rem;
+}
+
+.reply-btn {
+    background: rgba(106, 0, 255, 0.3);
+    border: none;
+    color: var(--text);
+    padding: 0.3rem 0.8rem;
+    border-radius: 15px;
+    font-size: 0.7rem;
+    cursor: pointer;
+    transition: var(--transition);
+    display: flex;
+    align-items: center;
+    gap: 0.3rem;
+}
+
+.reply-btn:hover {
+    background: rgba(106, 0, 255, 0.5);
+    transform: scale(1.05);
+}
+
+/* User Panel */
+.user-panel {
+    background: var(--card-bg);
+    border-radius: 15px;
+    padding: 1rem;
+    margin-bottom: 1rem;
+    border: 1px solid var(--card-border);
+}
+
+.user-panel h4 {
+    margin-bottom: 1rem;
+    color: var(--accent-4);
+    text-align: center;
+}
+
+.user-list {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.user-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0.5rem;
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 10px;
+    transition: var(--transition);
+}
+
+.user-item:hover {
+    background: rgba(255, 255, 255, 0.1);
+}
+
+.user-item-name {
+    font-weight: bold;
+    color: var(--text);
+}
+
+.user-item-actions {
+    display: flex;
+    gap: 0.5rem;
+}
+
+.user-chat-btn {
+    background: var(--gradient);
+    border: none;
+    color: white;
+    padding: 0.3rem 0.6rem;
+    border-radius: 10px;
+    font-size: 0.7rem;
+    cursor: pointer;
+    transition: var(--transition);
+}
+
+.user-chat-btn:hover {
+    transform: scale(1.05);
+}
+
+/* Enhanced Modal */
+.user-info {
+    margin-bottom: 1rem;
+}
+
+.user-name {
+    font-weight: bold;
+    color: var(--accent-2);
+    margin-bottom: 0.5rem;
+    font-size: 1.1rem;
+}
+
+.original-message {
+    background: rgba(255, 255, 255, 0.1);
+    padding: 1rem;
+    border-radius: 10px;
+    border-left: 4px solid var(--accent-1);
+    font-style: italic;
+}
+
+.modal-buttons {
+    display: flex;
+    gap: 1rem;
+}
+
+.btn-secondary {
+    background: rgba(255, 255, 255, 0.1) !important;
+    color: var(--text) !important;
+}
+
+.btn-secondary:hover {
+    background: rgba(255, 255, 255, 0.2) !important;
+}
+
+/* Chat container adjustments */
+.chat-container {
+    display: flex;
+    gap: 1rem;
+}
+
+.chat-messages-container {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+}
+
+.user-panel-container {
+    width: 250px;
+}
         }
     </style>
 </head>
@@ -1017,7 +1181,32 @@
                         <i class="fas fa-paper-plane"></i> Submit to the Cosmos
                     </button>
                 </div>
-                
+                <!-- Enhanced Admin Reply Modal -->
+<div id="adminReplyModal" class="modal" style="display: none;">
+    <div class="modal-content">
+        <span class="close-modal">&times;</span>
+        <h3>👑 Reply to User</h3>
+        <div class="user-info">
+            <div id="userNameDisplay" class="user-name"></div>
+            <div id="originalMessage" class="original-message"></div>
+        </div>
+        <textarea id="replyText" placeholder="Type your reply..." class="reply-input"></textarea>
+        <div class="modal-buttons">
+            <button id="sendReplyBtn" class="btn">
+                <i class="fas fa-paper-plane"></i> Send Reply
+            </button>
+            <button id="closeReplyBtn" class="btn btn-secondary">
+                Cancel
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- User List Panel (for admins) -->
+<div id="userListPanel" class="user-panel" style="display: none;">
+    <h4>🟢 Online Users</h4>
+    <div id="userList" class="user-list"></div>
+</div>
                 <!-- Existing Stories -->
                 <div class="diary-entries" id="storiesContainer">
                     <!-- Stories will be loaded here from Firebase -->
@@ -1418,6 +1607,321 @@
             // Check if user is already logged in
             // This will be handled by the auth state listener
         });
+        // Enhanced Admin functionality
+const ADMIN_EMAIL = "shauryaji445@gmail.com"; // Replace with your actual email
+let adminMode = false;
+let selectedMessageForReply = null;
+let onlineUsers = new Map(); // Track online users
+
+// New DOM Elements
+const userListPanel = document.getElementById('userListPanel');
+const userList = document.getElementById('userList');
+const userNameDisplay = document.getElementById('userNameDisplay');
+const closeReplyBtn = document.getElementById('closeReplyBtn');
+
+// Enhanced checkAdminStatus function
+function checkAdminStatus(user) {
+    if (user && user.email === ADMIN_EMAIL) {
+        adminControls.style.display = 'block';
+        userListPanel.style.display = 'block';
+        startTrackingOnlineUsers();
+        return true;
+    } else {
+        userListPanel.style.display = 'none';
+    }
+    return false;
+}
+
+// Track online users
+function startTrackingOnlineUsers() {
+    // Track users who are currently online
+    const onlineRef = db.collection('onlineUsers');
+    
+    // Set current user as online
+    const user = auth.currentUser;
+    if (user) {
+        const userStatusRef = onlineRef.doc(user.uid);
+        
+        // Set user as online
+        userStatusRef.set({
+            uid: user.uid,
+            email: user.email,
+            name: user.displayName || 'Anonymous',
+            lastSeen: firebase.firestore.FieldValue.serverTimestamp(),
+            isOnline: true
+        });
+        
+        // Remove user when they go offline
+        window.addEventListener('beforeunload', () => {
+            userStatusRef.update({
+                isOnline: false,
+                lastSeen: firebase.firestore.FieldValue.serverTimestamp()
+            });
+        });
+    }
+    
+    // Listen for online users
+    onlineRef.where('isOnline', '==', true)
+        .onSnapshot((snapshot) => {
+            onlineUsers.clear();
+            userList.innerHTML = '';
+            
+            snapshot.forEach((doc) => {
+                const userData = doc.data();
+                if (userData.uid !== auth.currentUser.uid) { // Don't show yourself
+                    onlineUsers.set(userData.uid, userData);
+                    
+                    const userItem = document.createElement('div');
+                    userItem.className = 'user-item';
+                    userItem.innerHTML = `
+                        <div class="user-item-name">${userData.name}</div>
+                        <div class="user-item-actions">
+                            <button class="user-chat-btn view-chat" data-user-id="${userData.uid}" data-user-name="${userData.name}">
+                                <i class="fas fa-comment"></i> Chat
+                            </button>
+                        </div>
+                    `;
+                    userList.appendChild(userItem);
+                }
+            });
+            
+            // Add event listeners to chat buttons
+            document.querySelectorAll('.view-chat').forEach(btn => {
+                btn.addEventListener('click', (e) => {
+                    const userId = e.target.closest('.view-chat').getAttribute('data-user-id');
+                    const userName = e.target.closest('.view-chat').getAttribute('data-user-name');
+                    scrollToUserMessages(userId, userName);
+                });
+            });
+        });
+}
+
+// Scroll to specific user's messages
+function scrollToUserMessages(userId, userName) {
+    const userMessages = document.querySelectorAll(`[data-user-id="${userId}"]`);
+    if (userMessages.length > 0) {
+        userMessages[0].scrollIntoView({ behavior: 'smooth', block: 'center' });
+        
+        // Highlight user messages temporarily
+        userMessages.forEach(msg => {
+            msg.style.background = 'rgba(106, 0, 255, 0.2)';
+            setTimeout(() => {
+                msg.style.background = '';
+            }, 2000);
+        });
+    } else {
+        alert(`No messages found from ${userName}`);
+    }
+}
+
+// Enhanced loadChatMessages function with user tracking
+function loadChatMessages() {
+    db.collection('chatMessages')
+        .orderBy('timestamp', 'asc')
+        .onSnapshot((querySnapshot) => {
+            const existingMessages = document.querySelectorAll('.firebase-message');
+            existingMessages.forEach(msg => msg.remove());
+            
+            const userMessageMap = new Map(); // Track users and their messages
+            
+            querySnapshot.forEach((doc) => {
+                const message = doc.data();
+                const messageId = doc.id;
+                
+                const isCurrentUser = auth.currentUser && auth.currentUser.uid === message.userId;
+                const isAdminMessage = message.isAdmin;
+                const isAdminUser = auth.currentUser && auth.currentUser.email === ADMIN_EMAIL;
+                
+                // Track user messages
+                if (!userMessageMap.has(message.userId)) {
+                    userMessageMap.set(message.userId, {
+                        name: message.userName,
+                        count: 1,
+                        lastMessage: message.message
+                    });
+                } else {
+                    const userData = userMessageMap.get(message.userId);
+                    userData.count++;
+                    userData.lastMessage = message.message;
+                }
+                
+                let messageClass = 'message me firebase-message';
+                let senderName = '';
+                let replyButton = '';
+                
+                if (isCurrentUser) {
+                    messageClass = 'message user firebase-message';
+                    senderName = `<div class="user-badge">💬 You</div>`;
+                } else if (isAdminMessage) {
+                    messageClass = 'message admin firebase-message';
+                    senderName = `<div class="admin-badge">👑 Shaurya (You)</div>`;
+                } else {
+                    // Regular user message
+                    senderName = `<div class="user-badge">👤 ${message.userName}</div>`;
+                    
+                    // Show reply button if in admin mode
+                    if (adminMode && isAdminUser) {
+                        replyButton = `<button class="reply-btn" data-message-id="${messageId}" data-user-id="${message.userId}" data-user-name="${message.userName}" data-message="${message.message}">
+                            <i class="fas fa-reply"></i> Reply
+                        </button>`;
+                    }
+                }
+                
+                const messageElement = document.createElement('div');
+                messageElement.className = messageClass;
+                messageElement.setAttribute('data-user-id', message.userId);
+                
+                const time = message.timestamp ? message.timestamp.toDate() : new Date();
+                const formattedTime = time.toLocaleTimeString('en-US', {
+                    hour: '2-digit',
+                    minute: '2-digit'
+                });
+                
+                messageElement.innerHTML = `
+                    ${senderName}
+                    <p>${message.message}</p>
+                    <div class="message-footer">
+                        <span class="message-time">${formattedTime}</span>
+                        ${replyButton}
+                    </div>
+                `;
+                
+                chatMessages.appendChild(messageElement);
+            });
+            
+            // Update user list with message counts
+            updateUserListWithMessages(userMessageMap);
+            
+            // Add event listeners to reply buttons
+            document.querySelectorAll('.reply-btn').forEach(btn => {
+                btn.addEventListener('click', (e) => {
+                    const messageId = e.target.closest('.reply-btn').getAttribute('data-message-id');
+                    const userId = e.target.closest('.reply-btn').getAttribute('data-user-id');
+                    const userName = e.target.closest('.reply-btn').getAttribute('data-user-name');
+                    const messageText = e.target.closest('.reply-btn').getAttribute('data-message');
+                    openReplyModal(messageId, userId, userName, messageText);
+                });
+            });
+            
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+        });
+}
+
+// Update user list with message counts
+function updateUserListWithMessages(userMessageMap) {
+    if (!adminMode) return;
+    
+    const userItems = document.querySelectorAll('.user-item');
+    userItems.forEach(item => {
+        const userId = item.querySelector('.view-chat').getAttribute('data-user-id');
+        if (userMessageMap.has(userId)) {
+            const userData = userMessageMap.get(userId);
+            const messageCount = document.createElement('span');
+            messageCount.className = 'message-count';
+            messageCount.textContent = ` (${userData.count} messages)`;
+            messageCount.style.color = 'var(--accent-2)';
+            messageCount.style.fontSize = '0.7rem';
+            
+            // Remove existing count if any
+            const existingCount = item.querySelector('.message-count');
+            if (existingCount) {
+                existingCount.remove();
+            }
+            
+            item.querySelector('.user-item-name').appendChild(messageCount);
+        }
+    });
+}
+
+// Enhanced openReplyModal function
+function openReplyModal(messageId, userId, userName, messageText) {
+    selectedMessageForReply = { messageId, userId, userName };
+    userNameDisplay.textContent = `Replying to: ${userName}`;
+    originalMessage.innerHTML = `<strong>Their message:</strong> "${messageText}"`;
+    replyText.value = '';
+    replyText.focus();
+    adminReplyModal.style.display = 'flex';
+}
+
+// Enhanced sendReply function
+sendReplyBtn.addEventListener('click', () => {
+    const replyMessage = replyText.value.trim();
+    if (!replyMessage) {
+        alert('Please enter a reply message');
+        return;
+    }
+    
+    const user = auth.currentUser;
+    if (!user || user.email !== ADMIN_EMAIL) {
+        alert('You need to be admin to send replies');
+        return;
+    }
+    
+    // Send the reply with user context
+    db.collection('chatMessages').add({
+        userId: user.uid,
+        userName: 'Shaurya',
+        message: replyMessage,
+        isAdmin: true,
+        isReplyTo: selectedMessageForReply.messageId,
+        replyToUserId: selectedMessageForReply.userId,
+        replyToUserName: selectedMessageForReply.userName,
+        timestamp: firebase.firestore.FieldValue.serverTimestamp()
+    })
+    .then(() => {
+        adminReplyModal.style.display = 'none';
+        replyText.value = '';
+        selectedMessageForReply = null;
+        
+        // Show success message
+        const successMsg = document.createElement('div');
+        successMsg.className = 'message admin firebase-message';
+        successMsg.innerHTML = `
+            <div class="admin-badge">👑 Shaurya (You)</div>
+            <p>✅ Reply sent to ${selectedMessageForReply?.userName || 'user'}</p>
+            <div class="message-footer">
+                <span class="message-time">Just now</span>
+            </div>
+        `;
+        chatMessages.appendChild(successMsg);
+        chatMessages.scrollTop = chatMessages.scrollHeight;
+    })
+    .catch((error) => {
+        console.error('Error sending reply: ', error);
+        alert('Error sending reply. Please try again.');
+    });
+});
+
+// Close reply modal
+closeReplyBtn.addEventListener('click', () => {
+    adminReplyModal.style.display = 'none';
+});
+
+// Update HTML structure for chat container
+document.addEventListener('DOMContentLoaded', () => {
+    const chatContainer = document.querySelector('.chat-container');
+    if (chatContainer) {
+        chatContainer.innerHTML = `
+            <div class="user-panel-container">
+                ${userListPanel.outerHTML}
+            </div>
+            <div class="chat-messages-container">
+                <div class="chat-messages" id="chatMessages">
+                    <div class="message me">
+                        <p>Hello cosmic traveler! Welcome to my universe. Feel free to ask me anything about my projects, skills, or just say hi! 👋</p>
+                        <div class="message-time">Just now</div>
+                    </div>
+                </div>
+                <div class="chat-input-container">
+                    <input type="text" class="chat-input" id="chatInput" placeholder="Type your cosmic message...">
+                    <button class="chat-send-btn" id="sendMessageBtn">
+                        <i class="fas fa-paper-plane"></i> Send
+                    </button>
+                </div>
+            </div>
+        `;
+    }
+});
     </script>
 </body>
 </html>
