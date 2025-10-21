@@ -1,0 +1,1423 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cosmic Dimension | Personal Portal</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
+    
+    <style>
+        /* CSS Variables for Theme */
+        :root {
+            --primary: #0a0a1f;
+            --secondary: #15152e;
+            --accent-1: #6a00ff;
+            --accent-2: #00d4ff;
+            --accent-3: #ff00c8;
+            --accent-4: #00ff88;
+            --text: #ffffff;
+            --text-secondary: #b0b0ff;
+            --card-bg: rgba(20, 20, 40, 0.7);
+            --card-border: rgba(106, 0, 255, 0.3);
+            --shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+            --transition: all 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            --gradient: linear-gradient(135deg, var(--accent-1), var(--accent-2), var(--accent-3));
+        }
+
+        .light-theme {
+            --primary: #f0f5ff;
+            --secondary: #e6eeff;
+            --accent-1: #6a00ff;
+            --accent-2: #0080ff;
+            --accent-3: #ff0080;
+            --accent-4: #00cc66;
+            --text: #222244;
+            --text-secondary: #444466;
+            --card-bg: rgba(255, 255, 255, 0.85);
+            --card-border: rgba(106, 0, 255, 0.2);
+            --shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+        }
+
+        /* Base Styles */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            color: var(--text);
+            min-height: 100vh;
+            overflow-x: hidden;
+            transition: var(--transition);
+        }
+
+        /* Login Screen */
+        .login-screen {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+            transition: opacity 1s ease, visibility 1s ease;
+        }
+
+        .login-content {
+            text-align: center;
+            padding: 3rem;
+            background: var(--card-bg);
+            border-radius: 25px;
+            box-shadow: var(--shadow);
+            backdrop-filter: blur(15px);
+            border: 1px solid var(--card-border);
+            max-width: 500px;
+            width: 90%;
+            animation: float 6s ease-in-out infinite, glow 4s ease-in-out infinite alternate;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .login-content::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: conic-gradient(
+                transparent, 
+                rgba(106, 0, 255, 0.3), 
+                transparent 30%
+            );
+            animation: rotate 10s linear infinite;
+            z-index: -1;
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translateY(0) rotate(0deg); }
+            25% { transform: translateY(-20px) rotate(1deg); }
+            50% { transform: translateY(-10px) rotate(-1deg); }
+            75% { transform: translateY(-15px) rotate(1deg); }
+        }
+
+        @keyframes glow {
+            0% { box-shadow: 0 0 20px rgba(106, 0, 255, 0.3); }
+            100% { box-shadow: 0 0 40px rgba(0, 212, 255, 0.5); }
+        }
+
+        @keyframes rotate {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .login-content h1 {
+            font-size: 2.5rem;
+            margin-bottom: 1.5rem;
+            background: var(--gradient);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+            animation: textShine 3s ease-in-out infinite alternate;
+        }
+
+        @keyframes textShine {
+            0% { background-position: 0% 50%; }
+            100% { background-position: 100% 50%; }
+        }
+
+        .input-group {
+            margin-bottom: 1.5rem;
+            text-align: left;
+        }
+
+        .input-group label {
+            display: block;
+            margin-bottom: 0.5rem;
+            color: var(--text-secondary);
+        }
+
+        .login-input {
+            width: 100%;
+            padding: 1.2rem;
+            border: none;
+            border-radius: 15px;
+            background: rgba(255, 255, 255, 0.1);
+            color: var(--text);
+            font-size: 1.1rem;
+            transition: var(--transition);
+            border: 1px solid transparent;
+        }
+
+        .login-input:focus {
+            outline: none;
+            border: 1px solid var(--accent-1);
+            box-shadow: 0 0 20px rgba(106, 0, 255, 0.5);
+            transform: scale(1.05);
+        }
+
+        .btn {
+            padding: 1.2rem 2.5rem;
+            border: none;
+            border-radius: 15px;
+            background: var(--gradient);
+            color: white;
+            font-size: 1.1rem;
+            font-weight: bold;
+            cursor: pointer;
+            transition: var(--transition);
+            box-shadow: 0 4px 15px rgba(106, 0, 255, 0.4);
+            position: relative;
+            overflow: hidden;
+            z-index: 1;
+            width: 100%;
+            margin-top: 1rem;
+        }
+
+        .btn::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent);
+            transition: left 0.7s;
+            z-index: -1;
+        }
+
+        .btn:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 25px rgba(106, 0, 255, 0.6);
+        }
+
+        .btn:hover::before {
+            left: 100%;
+        }
+
+        .error-message {
+            color: #ff4d4d;
+            margin-top: 1rem;
+            display: none;
+        }
+
+        /* Main Dashboard */
+        .dashboard {
+            display: none;
+            min-height: 100vh;
+            padding: 2rem;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .dashboard-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 3rem;
+            padding: 1.5rem;
+            background: var(--card-bg);
+            border-radius: 25px;
+            box-shadow: var(--shadow);
+            backdrop-filter: blur(15px);
+            border: 1px solid var(--card-border);
+            animation: slideInDown 1s ease;
+        }
+
+        @keyframes slideInDown {
+            0% { transform: translateY(-100px); opacity: 0; }
+            100% { transform: translateY(0); opacity: 1; }
+        }
+
+        .welcome-message {
+            font-size: 1.8rem;
+            background: var(--gradient);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+            animation: textShine 3s ease-in-out infinite alternate;
+        }
+
+        .theme-toggle {
+            background: none;
+            border: none;
+            color: var(--text);
+            font-size: 1.8rem;
+            cursor: pointer;
+            transition: var(--transition);
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: rgba(255, 255, 255, 0.1);
+        }
+
+        .theme-toggle:hover {
+            transform: rotate(180deg) scale(1.1);
+            background: rgba(255, 255, 255, 0.2);
+        }
+
+        .logout-btn {
+            background: none;
+            border: none;
+            color: var(--text);
+            font-size: 1.2rem;
+            cursor: pointer;
+            transition: var(--transition);
+            padding: 0.5rem 1rem;
+            border-radius: 10px;
+            background: rgba(255, 255, 255, 0.1);
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .logout-btn:hover {
+            background: rgba(255, 255, 255, 0.2);
+            transform: scale(1.05);
+        }
+
+        /* Navigation */
+        .nav-container {
+            display: flex;
+            justify-content: center;
+            margin-bottom: 3rem;
+            flex-wrap: wrap;
+            gap: 1rem;
+        }
+
+        .nav-btn {
+            padding: 1rem 2rem;
+            background: var(--card-bg);
+            border: 1px solid var(--card-border);
+            color: var(--text);
+            border-radius: 15px;
+            cursor: pointer;
+            transition: var(--transition);
+            font-size: 1.1rem;
+            font-weight: bold;
+            display: flex;
+            align-items: center;
+            gap: 0.7rem;
+            box-shadow: var(--shadow);
+            backdrop-filter: blur(15px);
+        }
+
+        .nav-btn:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.5);
+            background: rgba(106, 0, 255, 0.2);
+        }
+
+        .nav-btn.active {
+            background: var(--gradient);
+            transform: translateY(-5px);
+            box-shadow: 0 10px 25px rgba(106, 0, 255, 0.5);
+        }
+
+        /* Content Sections */
+        .content-section {
+            display: none;
+            animation: fadeIn 1s ease;
+        }
+
+        @keyframes fadeIn {
+            0% { opacity: 0; }
+            100% { opacity: 1; }
+        }
+
+        .content-section.active {
+            display: block;
+        }
+
+        /* Profile Section */
+        .profile-section {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 2rem;
+            margin-bottom: 3rem;
+        }
+
+        .profile-image {
+            flex: 1;
+            min-width: 300px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            animation: fadeInLeft 1s ease;
+        }
+
+        @keyframes fadeInLeft {
+            0% { transform: translateX(-50px); opacity: 0; }
+            100% { transform: translateX(0); opacity: 1; }
+        }
+
+        .image-container {
+            width: 280px;
+            height: 280px;
+            border-radius: 50%;
+            position: relative;
+            overflow: hidden;
+            box-shadow: 0 0 40px var(--accent-1);
+            animation: pulse 4s ease-in-out infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { box-shadow: 0 0 40px var(--accent-1); }
+            50% { box-shadow: 0 0 60px var(--accent-2), 0 0 80px var(--accent-3); }
+        }
+
+        .image-container::before {
+            content: '';
+            position: absolute;
+            top: -10px;
+            left: -10px;
+            right: -10px;
+            bottom: -10px;
+            background: conic-gradient(var(--accent-1), var(--accent-2), var(--accent-3), var(--accent-1));
+            z-index: -1;
+            border-radius: 50%;
+            animation: rotate 10s linear infinite;
+        }
+
+        .profile-img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            border-radius: 50%;
+            transition: var(--transition);
+        }
+
+        .profile-img:hover {
+            transform: scale(1.05);
+        }
+
+        .profile-details {
+            flex: 2;
+            min-width: 300px;
+            background: var(--card-bg);
+            padding: 2.5rem;
+            border-radius: 25px;
+            box-shadow: var(--shadow);
+            backdrop-filter: blur(15px);
+            border: 1px solid var(--card-border);
+            transition: var(--transition);
+            animation: fadeInRight 1s ease;
+        }
+
+        @keyframes fadeInRight {
+            0% { transform: translateX(50px); opacity: 0; }
+            100% { transform: translateX(0); opacity: 1; }
+        }
+
+        .profile-details:hover {
+            transform: translateY(-10px) scale(1.01);
+            box-shadow: 0 15px 40px rgba(0, 0, 0, 0.5);
+        }
+
+        .profile-details h2 {
+            font-size: 2.2rem;
+            margin-bottom: 1.5rem;
+            background: var(--gradient);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+        }
+
+        .profile-details p {
+            margin-bottom: 1.2rem;
+            line-height: 1.7;
+            color: var(--text-secondary);
+        }
+
+        .skills {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.8rem;
+            margin-top: 1.5rem;
+        }
+
+        .skill {
+            padding: 0.7rem 1.2rem;
+            background: linear-gradient(135deg, rgba(106, 0, 255, 0.3), rgba(0, 212, 255, 0.3));
+            border-radius: 20px;
+            font-size: 0.9rem;
+            transition: var(--transition);
+            border: 1px solid rgba(106, 0, 255, 0.2);
+            animation: fadeInUp 0.5s ease;
+        }
+
+        @keyframes fadeInUp {
+            0% { transform: translateY(20px); opacity: 0; }
+            100% { transform: translateY(0); opacity: 1; }
+        }
+
+        .skill:hover {
+            transform: scale(1.1) translateY(-5px);
+            background: linear-gradient(135deg, rgba(106, 0, 255, 0.5), rgba(0, 212, 255, 0.5));
+            box-shadow: 0 5px 15px rgba(106, 0, 255, 0.4);
+        }
+
+        /* Projects Section */
+        .projects-section {
+            margin-bottom: 3rem;
+        }
+
+        .section-title {
+            font-size: 2.2rem;
+            margin-bottom: 2.5rem;
+            text-align: center;
+            background: var(--gradient);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+            animation: textShine 3s ease-in-out infinite alternate;
+        }
+
+        .projects-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+            gap: 2.5rem;
+        }
+
+        .project-card {
+            background: var(--card-bg);
+            border-radius: 25px;
+            padding: 2rem;
+            box-shadow: var(--shadow);
+            backdrop-filter: blur(15px);
+            border: 1px solid var(--card-border);
+            transition: var(--transition);
+            position: relative;
+            overflow: hidden;
+            animation: cardAppear 0.8s ease;
+        }
+
+        @keyframes cardAppear {
+            0% { transform: scale(0.8); opacity: 0; }
+            100% { transform: scale(1); opacity: 1; }
+        }
+
+        .project-card:nth-child(2) {
+            animation-delay: 0.1s;
+        }
+
+        .project-card:nth-child(3) {
+            animation-delay: 0.2s;
+        }
+
+        .project-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 5px;
+            background: var(--gradient);
+        }
+
+        .project-card:hover {
+            transform: translateY(-15px) scale(1.03);
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.6);
+        }
+
+        .project-card h3 {
+            font-size: 1.6rem;
+            margin-bottom: 1.2rem;
+            color: var(--text);
+        }
+
+        .project-card p {
+            color: var(--text-secondary);
+            margin-bottom: 1.8rem;
+            line-height: 1.7;
+        }
+
+        .project-link {
+            display: inline-block;
+            padding: 0.8rem 1.5rem;
+            background: var(--gradient);
+            color: white;
+            text-decoration: none;
+            border-radius: 12px;
+            font-weight: bold;
+            transition: var(--transition);
+            position: relative;
+            overflow: hidden;
+            z-index: 1;
+        }
+
+        .project-link::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent);
+            transition: left 0.7s;
+            z-index: -1;
+        }
+
+        .project-link:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 5px 15px rgba(106, 0, 255, 0.5);
+        }
+
+        .project-link:hover::before {
+            left: 100%;
+        }
+
+        /* Stories Section */
+        .stories-section {
+            margin-bottom: 3rem;
+        }
+
+        .story-form {
+            background: var(--card-bg);
+            border-radius: 25px;
+            padding: 2.5rem;
+            box-shadow: var(--shadow);
+            backdrop-filter: blur(15px);
+            border: 1px solid var(--card-border);
+            margin-bottom: 3rem;
+            transition: var(--transition);
+            animation: slideInUp 0.8s ease;
+        }
+
+        @keyframes slideInUp {
+            0% { transform: translateY(30px); opacity: 0; }
+            100% { transform: translateY(0); opacity: 1; }
+        }
+
+        .story-form:hover {
+            transform: translateY(-10px);
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.5);
+        }
+
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 0.5rem;
+            color: var(--text-secondary);
+        }
+
+        .form-input {
+            width: 100%;
+            padding: 1.2rem;
+            border: none;
+            border-radius: 15px;
+            background: rgba(255, 255, 255, 0.1);
+            color: var(--text);
+            font-size: 1.1rem;
+            transition: var(--transition);
+            border: 1px solid transparent;
+        }
+
+        .form-input:focus {
+            outline: none;
+            border: 1px solid var(--accent-1);
+            box-shadow: 0 0 20px rgba(106, 0, 255, 0.5);
+        }
+
+        textarea.form-input {
+            min-height: 150px;
+            resize: vertical;
+        }
+
+        .form-note {
+            font-size: 0.9rem;
+            color: var(--text-secondary);
+            margin-top: 0.5rem;
+        }
+
+        .diary-entries {
+            display: grid;
+            gap: 2.5rem;
+        }
+
+        .diary-entry {
+            background: var(--card-bg);
+            border-radius: 25px;
+            padding: 2.5rem;
+            box-shadow: var(--shadow);
+            backdrop-filter: blur(15px);
+            border: 1px solid var(--card-border);
+            transition: var(--transition);
+            animation: slideInUp 0.8s ease;
+        }
+
+        .diary-entry:hover {
+            transform: translateY(-10px);
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.5);
+        }
+
+        .entry-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.5rem;
+        }
+
+        .entry-date {
+            font-size: 0.9rem;
+            color: var(--text-secondary);
+            background: rgba(106, 0, 255, 0.2);
+            padding: 0.5rem 1rem;
+            border-radius: 20px;
+        }
+
+        .entry-mood {
+            font-size: 2rem;
+            animation: bounce 2s infinite;
+        }
+
+        @keyframes bounce {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-10px); }
+        }
+
+        .entry-content {
+            line-height: 1.8;
+            color: var(--text-secondary);
+        }
+
+        /* Chat Section */
+        .chat-section {
+            margin-bottom: 3rem;
+        }
+
+        .chat-container {
+            background: var(--card-bg);
+            border-radius: 25px;
+            box-shadow: var(--shadow);
+            backdrop-filter: blur(15px);
+            border: 1px solid var(--card-border);
+            overflow: hidden;
+            height: 600px;
+            display: flex;
+            flex-direction: column;
+            animation: slideInUp 0.8s ease;
+        }
+
+        .chat-messages {
+            flex: 1;
+            padding: 1.5rem;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+
+        .message {
+            max-width: 80%;
+            padding: 1rem 1.5rem;
+            border-radius: 20px;
+            position: relative;
+            animation: fadeIn 0.3s ease;
+        }
+
+        .message.user {
+            align-self: flex-end;
+            background: var(--gradient);
+            color: white;
+            border-bottom-right-radius: 5px;
+        }
+
+        .message.me {
+            align-self: flex-start;
+            background: rgba(255, 255, 255, 0.1);
+            color: var(--text);
+            border-bottom-left-radius: 5px;
+        }
+
+        .message-time {
+            font-size: 0.7rem;
+            margin-top: 0.5rem;
+            opacity: 0.7;
+        }
+
+        .chat-input-container {
+            padding: 1.5rem;
+            border-top: 1px solid var(--card-border);
+            display: flex;
+            gap: 1rem;
+        }
+
+        .chat-input {
+            flex: 1;
+            padding: 1rem 1.5rem;
+            border: none;
+            border-radius: 15px;
+            background: rgba(255, 255, 255, 0.1);
+            color: var(--text);
+            font-size: 1rem;
+            transition: var(--transition);
+            border: 1px solid transparent;
+        }
+
+        .chat-input:focus {
+            outline: none;
+            border: 1px solid var(--accent-1);
+            box-shadow: 0 0 15px rgba(106, 0, 255, 0.3);
+        }
+
+        .chat-send-btn {
+            padding: 1rem 1.5rem;
+            border: none;
+            border-radius: 15px;
+            background: var(--gradient);
+            color: white;
+            font-weight: bold;
+            cursor: pointer;
+            transition: var(--transition);
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .chat-send-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 5px 15px rgba(106, 0, 255, 0.5);
+        }
+
+        /* Footer */
+        .footer {
+            text-align: center;
+            padding: 2.5rem;
+            margin-top: 3rem;
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+            color: var(--text-secondary);
+            animation: fadeIn 1s ease 0.9s both;
+        }
+
+        /* Responsive Design */
+        @media (max-width: 768px) {
+            .profile-section {
+                flex-direction: column;
+            }
+            
+            .dashboard-header {
+                flex-direction: column;
+                gap: 1.5rem;
+                text-align: center;
+            }
+            
+            .image-container {
+                width: 220px;
+                height: 220px;
+            }
+            
+            .nav-container {
+                flex-direction: column;
+            }
+            
+            .message {
+                max-width: 90%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Login Screen -->
+    <div class="login-screen" id="loginScreen">
+        <div class="login-content">
+            <h1>Cosmic Dimension</h1>
+            <p>Enter the cosmic portal to explore my universe</p>
+            
+            <div class="input-group">
+                <label for="loginEmail">Email</label>
+                <input type="email" id="loginEmail" class="login-input" placeholder="Enter your cosmic email">
+            </div>
+            
+            <div class="input-group">
+                <label for="loginPassword">Password</label>
+                <input type="password" id="loginPassword" class="login-input" placeholder="Enter your cosmic password">
+            </div>
+            
+            <button class="btn" id="loginBtn">
+                <i class="fas fa-rocket"></i> Launch into Cosmos
+            </button>
+            
+            <p style="margin-top: 1.5rem; color: var(--text-secondary);">
+                Don't have an account? <a href="#" id="showRegister" style="color: var(--accent-2);">Register here</a>
+            </p>
+            
+            <div class="error-message" id="loginError"></div>
+        </div>
+    </div>
+
+    <!-- Register Screen -->
+    <div class="login-screen" id="registerScreen" style="display: none;">
+        <div class="login-content">
+            <h1>Join the Cosmos</h1>
+            <p>Create your account to explore my universe</p>
+            
+            <div class="input-group">
+                <label for="registerName">Name</label>
+                <input type="text" id="registerName" class="login-input" placeholder="Enter your cosmic name">
+            </div>
+            
+            <div class="input-group">
+                <label for="registerEmail">Email</label>
+                <input type="email" id="registerEmail" class="login-input" placeholder="Enter your cosmic email">
+            </div>
+            
+            <div class="input-group">
+                <label for="registerPassword">Password</label>
+                <input type="password" id="registerPassword" class="login-input" placeholder="Create a cosmic password">
+            </div>
+            
+            <button class="btn" id="registerBtn">
+                <i class="fas fa-user-astronaut"></i> Create Account
+            </button>
+            
+            <p style="margin-top: 1.5rem; color: var(--text-secondary);">
+                Already have an account? <a href="#" id="showLogin" style="color: var(--accent-2);">Login here</a>
+            </p>
+            
+            <div class="error-message" id="registerError"></div>
+        </div>
+    </div>
+
+    <!-- Main Dashboard -->
+    <div class="dashboard" id="dashboard">
+        <header class="dashboard-header">
+            <h1 class="welcome-message" id="welcomeMessage">Welcome to Cosmic Dimension</h1>
+            <div style="display: flex; align-items: center; gap: 1rem;">
+                <button class="theme-toggle" id="themeToggle">
+                    <i class="fas fa-moon"></i>
+                </button>
+                <button class="logout-btn" id="logoutBtn">
+                    <i class="fas fa-sign-out-alt"></i> Logout
+                </button>
+            </div>
+        </header>
+
+        <!-- Navigation -->
+        <div class="nav-container">
+            <button class="nav-btn active" data-section="about">
+                <i class="fas fa-user-astronaut"></i> About Me
+            </button>
+            <button class="nav-btn" data-section="projects">
+                <i class="fas fa-rocket"></i> My Web Projects
+            </button>
+            <button class="nav-btn" data-section="stories">
+                <i class="fas fa-book"></i> Stories
+            </button>
+            <button class="nav-btn" data-section="chat">
+                <i class="fas fa-comments"></i> Chat with Me
+            </button>
+        </div>
+
+        <!-- Content Sections -->
+        <div class="content-sections">
+            <!-- About Me Section -->
+            <section class="content-section active" id="about-section">
+                <div class="profile-section">
+                    <div class="profile-image">
+                        <div class="image-container">
+                            <img src="3.png" alt="Profile Picture" class="profile-img">
+                        </div>
+                    </div>
+                    <div class="profile-details">
+                        <h2>Shaurya 😻</h2>
+                        <p>Hello cosmic traveler! I'm a front-end developer and UI/UX designer with a passion for creating immersive digital experiences that transport users to new dimensions.</p>
+                        <p>With over -999999 aura points in my school and +inf in the digital cosmos, I specialize in creating nothing with smooth nothings and interactive nothings.</p>
+                        <p>When I'm not coding, I'm usually exploring the latest sleeping, studying not astrophysics but chemistry, or creating digital art inspired by the greatest Sleep and dreams.</p>
+                        
+                        <div class="skills">
+                            <span class="skill">HTML/CSS</span>
+                            <span class="skill">JavaScript</span>
+                            <span class="skill">12th grade</span>
+                            <span class="skill">PC*</span>
+                            <span class="skill">16th *** 200*</span>
+                            <span class="skill">Anime ❌ cartoons✅</span>
+                            <span class="skill">cutting JEEvan</span>
+                            <span class="skill">not a proud but KVian</span>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Projects Section -->
+            <section class="content-section" id="projects-section">
+                <h2 class="section-title">Cosmic Projects</h2>
+                <div class="projects-grid">
+                    <div class="project-card">
+                        <h3>VIDYORA</h3>
+                        <p>.........</p>
+                        <a href="https://sh16coder.github.io/Vidyora/" class="project-link">Explore Project</a>
+                    </div>
+                    <div class="project-card">
+                        <h3>Vazeer classes</h3>
+                        <p>..........</p>
+                        <a href="https://sh16coder.github.io/Vazeer...../" class="project-link">Explore Project</a>
+                    </div>
+                    <div class="project-card">
+                        <h3>Distrokill</h3>
+                        <p>............</p>
+                        <a href="https://sh16coder.github.io/Disrokill/" class="project-link">Explore Project</a>
+                    </div>
+                    <div class="project-card">
+                        <h3>Vidyora Prodigy</h3>
+                        <p>..........</p>
+                        <a href="https://sh16coder.github.io/prodigy_vidyora/" class="project-link">Explore Project</a>
+                    </div>
+                    <div class="project-card">
+                        <h3>AdhyayanFlow</h3>
+                        <p>Best for Tablet, Laptop, Computer users</p>
+                        <a href="https://sh16coder.github.io/AdhyayanFlow/" class="project-link">Explore Project</a>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Stories Section -->
+            <section class="content-section" id="stories-section">
+                <h2 class="section-title">Cosmic Stories</h2>
+                
+                <!-- Story Submission Form -->
+                <div class="story-form">
+                    <h3>Share Your Cosmic Story</h3>
+                    <p>Have an interesting story to share with the universe? Submit it here!</p>
+                    
+                    <div class="form-group">
+                        <label for="storyTitle">Story Title</label>
+                        <input type="text" id="storyTitle" class="form-input" placeholder="Give your story a cosmic title">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="storyContent">Your Story</label>
+                        <textarea id="storyContent" class="form-input" placeholder="Share your cosmic experience..."></textarea>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="authorName">Your Name (for our records only)</label>
+                        <input type="text" id="authorName" class="form-input" placeholder="Your name (will not be displayed)">
+                        <p class="form-note">Your name will be stored privately and won't be displayed with your story.</p>
+                    </div>
+                    
+                    <button class="btn" id="submitStoryBtn">
+                        <i class="fas fa-paper-plane"></i> Submit to the Cosmos
+                    </button>
+                </div>
+                
+                <!-- Existing Stories -->
+                <div class="diary-entries" id="storiesContainer">
+                    <!-- Stories will be loaded here from Firebase -->
+                </div>
+            </section>
+
+            <!-- Chat Section -->
+            <section class="content-section" id="chat-section">
+                <h2 class="section-title">Chat with Me</h2>
+                <div class="chat-container">
+                    <div class="chat-messages" id="chatMessages">
+                        <div class="message me">
+                            <p>Hello cosmic traveler! Welcome to my universe. Feel free to ask me anything about my projects, skills, or just say hi! 👋</p>
+                            <div class="message-time">Just now</div>
+                        </div>
+                    </div>
+                    <div class="chat-input-container">
+                        <input type="text" class="chat-input" id="chatInput" placeholder="Type your cosmic message...">
+                        <button class="chat-send-btn" id="sendMessageBtn">
+                            <i class="fas fa-paper-plane"></i> Send
+                        </button>
+                    </div>
+                </div>
+            </section>
+        </div>
+
+        <!-- Footer -->
+        <footer class="footer">
+            <p>© 2023 Cosmic Dimension | Created with <i class="fas fa-heart" style="color: #ff4d6d;"></i> by Shaurya</p>
+            <p>Explore the cosmos of creativity and innovation</p>
+        </footer>
+    </div>
+
+    <script>
+        // Firebase Configuration
+        const firebaseConfig = {
+            apiKey: "AIzaSyC8hK0nLk6Xq9Q5w5Q5w5Q5w5Q5w5Q5w5Q5w",
+            authDomain: "cosmic-dimension.firebaseapp.com",
+            projectId: "cosmic-dimension",
+            storageBucket: "cosmic-dimension.appspot.com",
+            messagingSenderId: "123456789",
+            appId: "1:123456789:web:abcdef123456"
+        };
+
+        // Initialize Firebase
+        firebase.initializeApp(firebaseConfig);
+        const auth = firebase.auth();
+        const db = firebase.firestore();
+
+        // DOM Elements
+        const loginScreen = document.getElementById('loginScreen');
+        const registerScreen = document.getElementById('registerScreen');
+        const dashboard = document.getElementById('dashboard');
+        const loginBtn = document.getElementById('loginBtn');
+        const registerBtn = document.getElementById('registerBtn');
+        const showRegister = document.getElementById('showRegister');
+        const showLogin = document.getElementById('showLogin');
+        const logoutBtn = document.getElementById('logoutBtn');
+        const themeToggle = document.getElementById('themeToggle');
+        const navBtns = document.querySelectorAll('.nav-btn');
+        const contentSections = document.querySelectorAll('.content-section');
+        const welcomeMessage = document.getElementById('welcomeMessage');
+        const submitStoryBtn = document.getElementById('submitStoryBtn');
+        const storiesContainer = document.getElementById('storiesContainer');
+        const chatMessages = document.getElementById('chatMessages');
+        const chatInput = document.getElementById('chatInput');
+        const sendMessageBtn = document.getElementById('sendMessageBtn');
+
+        // Theme Toggle
+        themeToggle.addEventListener('click', () => {
+            document.body.classList.toggle('light-theme');
+            const icon = themeToggle.querySelector('i');
+            if (document.body.classList.contains('light-theme')) {
+                icon.classList.remove('fa-moon');
+                icon.classList.add('fa-sun');
+            } else {
+                icon.classList.remove('fa-sun');
+                icon.classList.add('fa-moon');
+            }
+        });
+
+        // Navigation
+        navBtns.forEach(btn => {
+            btn.addEventListener('click', () => {
+                const targetSection = btn.getAttribute('data-section');
+                
+                // Update active nav button
+                navBtns.forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+                
+                // Show target section
+                contentSections.forEach(section => {
+                    section.classList.remove('active');
+                    if (section.id === `${targetSection}-section`) {
+                        section.classList.add('active');
+                    }
+                });
+            });
+        });
+
+        // Show Register Screen
+        showRegister.addEventListener('click', (e) => {
+            e.preventDefault();
+            loginScreen.style.display = 'none';
+            registerScreen.style.display = 'flex';
+        });
+
+        // Show Login Screen
+        showLogin.addEventListener('click', (e) => {
+            e.preventDefault();
+            registerScreen.style.display = 'none';
+            loginScreen.style.display = 'flex';
+        });
+
+        // Register Function
+        registerBtn.addEventListener('click', () => {
+            const name = document.getElementById('registerName').value;
+            const email = document.getElementById('registerEmail').value;
+            const password = document.getElementById('registerPassword').value;
+            const errorElement = document.getElementById('registerError');
+            
+            if (!name || !email || !password) {
+                errorElement.textContent = 'Please fill in all fields';
+                errorElement.style.display = 'block';
+                return;
+            }
+            
+            auth.createUserWithEmailAndPassword(email, password)
+                .then((userCredential) => {
+                    // User registered successfully
+                    const user = userCredential.user;
+                    
+                    // Store user data in Firestore
+                    return db.collection('users').doc(user.uid).set({
+                        name: name,
+                        email: email,
+                        createdAt: firebase.firestore.FieldValue.serverTimestamp()
+                    });
+                })
+                .then(() => {
+                    // Registration complete
+                    registerScreen.style.display = 'none';
+                    dashboard.style.display = 'block';
+                    welcomeMessage.textContent = `Welcome to the Cosmos, ${name}!`;
+                })
+                .catch((error) => {
+                    errorElement.textContent = error.message;
+                    errorElement.style.display = 'block';
+                });
+        });
+
+        // Login Function
+        loginBtn.addEventListener('click', () => {
+            const email = document.getElementById('loginEmail').value;
+            const password = document.getElementById('loginPassword').value;
+            const errorElement = document.getElementById('loginError');
+            
+            if (!email || !password) {
+                errorElement.textContent = 'Please fill in all fields';
+                errorElement.style.display = 'block';
+                return;
+            }
+            
+            auth.signInWithEmailAndPassword(email, password)
+                .then((userCredential) => {
+                    // User logged in successfully
+                    const user = userCredential.user;
+                    
+                    // Get user data from Firestore
+                    return db.collection('users').doc(user.uid).get();
+                })
+                .then((doc) => {
+                    if (doc.exists) {
+                        const userData = doc.data();
+                        loginScreen.style.display = 'none';
+                        dashboard.style.display = 'block';
+                        welcomeMessage.textContent = `Welcome back, ${userData.name}!`;
+                    }
+                })
+                .catch((error) => {
+                    errorElement.textContent = error.message;
+                    errorElement.style.display = 'block';
+                });
+        });
+
+        // Logout Function
+        logoutBtn.addEventListener('click', () => {
+            auth.signOut().then(() => {
+                dashboard.style.display = 'none';
+                loginScreen.style.display = 'flex';
+                
+                // Clear form fields
+                document.getElementById('loginEmail').value = '';
+                document.getElementById('loginPassword').value = '';
+                document.getElementById('registerName').value = '';
+                document.getElementById('registerEmail').value = '';
+                document.getElementById('registerPassword').value = '';
+            });
+        });
+
+        // Submit Story Function
+        submitStoryBtn.addEventListener('click', () => {
+            const title = document.getElementById('storyTitle').value;
+            const content = document.getElementById('storyContent').value;
+            const authorName = document.getElementById('authorName').value;
+            
+            if (!title || !content) {
+                alert('Please fill in both title and story content');
+                return;
+            }
+            
+            // Get current user
+            const user = auth.currentUser;
+            if (!user) {
+                alert('You need to be logged in to submit a story');
+                return;
+            }
+            
+            // Add story to Firestore
+            db.collection('stories').add({
+                title: title,
+                content: content,
+                authorName: authorName, // Stored but not displayed
+                userId: user.uid,
+                createdAt: firebase.firestore.FieldValue.serverTimestamp()
+            })
+            .then(() => {
+                // Clear form
+                document.getElementById('storyTitle').value = '';
+                document.getElementById('storyContent').value = '';
+                document.getElementById('authorName').value = '';
+                
+                alert('Your story has been submitted to the cosmos!');
+                
+                // Reload stories
+                loadStories();
+            })
+            .catch((error) => {
+                console.error('Error adding story: ', error);
+                alert('Error submitting story. Please try again.');
+            });
+        });
+
+        // Load Stories from Firestore
+        function loadStories() {
+            storiesContainer.innerHTML = '';
+            
+            db.collection('stories')
+                .orderBy('createdAt', 'desc')
+                .get()
+                .then((querySnapshot) => {
+                    if (querySnapshot.empty) {
+                        storiesContainer.innerHTML = '<p>No stories yet. Be the first to share!</p>';
+                        return;
+                    }
+                    
+                    querySnapshot.forEach((doc) => {
+                        const story = doc.data();
+                        const storyElement = document.createElement('div');
+                        storyElement.className = 'diary-entry';
+                        
+                        // Format date
+                        const date = story.createdAt ? story.createdAt.toDate() : new Date();
+                        const formattedDate = date.toLocaleDateString('en-US', {
+                            year: 'numeric',
+                            month: 'long',
+                            day: 'numeric'
+                        });
+                        
+                        storyElement.innerHTML = `
+                            <div class="entry-header">
+                                <span class="entry-date">${formattedDate}</span>
+                                <span class="entry-mood">🌌</span>
+                            </div>
+                            <h3>${story.title}</h3>
+                            <div class="entry-content">
+                                <p>${story.content}</p>
+                            </div>
+                        `;
+                        
+                        storiesContainer.appendChild(storyElement);
+                    });
+                })
+                .catch((error) => {
+                    console.error('Error loading stories: ', error);
+                    storiesContainer.innerHTML = '<p>Error loading stories. Please try again later.</p>';
+                });
+        }
+
+        // Send Message Function
+        sendMessageBtn.addEventListener('click', sendMessage);
+        chatInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                sendMessage();
+            }
+        });
+
+        function sendMessage() {
+            const message = chatInput.value.trim();
+            if (!message) return;
+            
+            // Get current user
+            const user = auth.currentUser;
+            if (!user) {
+                alert('You need to be logged in to send messages');
+                return;
+            }
+            
+            // Add message to Firestore
+            db.collection('chatMessages').add({
+                userId: user.uid,
+                userName: user.displayName || 'Anonymous',
+                message: message,
+                timestamp: firebase.firestore.FieldValue.serverTimestamp()
+            })
+            .then(() => {
+                // Clear input
+                chatInput.value = '';
+            })
+            .catch((error) => {
+                console.error('Error sending message: ', error);
+                alert('Error sending message. Please try again.');
+            });
+        }
+
+        // Load Chat Messages
+        function loadChatMessages() {
+            db.collection('chatMessages')
+                .orderBy('timestamp', 'asc')
+                .onSnapshot((querySnapshot) => {
+                    chatMessages.innerHTML = '';
+                    
+                    // Add welcome message
+                    const welcomeMsg = document.createElement('div');
+                    welcomeMsg.className = 'message me';
+                    welcomeMsg.innerHTML = `
+                        <p>Hello cosmic traveler! Welcome to my universe. Feel free to ask me anything about my projects, skills, or just say hi! 👋</p>
+                        <div class="message-time">Just now</div>
+                    `;
+                    chatMessages.appendChild(welcomeMsg);
+                    
+                    querySnapshot.forEach((doc) => {
+                        const message = doc.data();
+                        const messageElement = document.createElement('div');
+                        
+                        // Check if message is from current user
+                        const isCurrentUser = auth.currentUser && auth.currentUser.uid === message.userId;
+                        
+                        messageElement.className = isCurrentUser ? 'message user' : 'message me';
+                        
+                        // Format time
+                        const time = message.timestamp ? message.timestamp.toDate() : new Date();
+                        const formattedTime = time.toLocaleTimeString('en-US', {
+                            hour: '2-digit',
+                            minute: '2-digit'
+                        });
+                        
+                        messageElement.innerHTML = `
+                            <p>${message.message}</p>
+                            <div class="message-time">${formattedTime}</div>
+                        `;
+                        
+                        chatMessages.appendChild(messageElement);
+                    });
+                    
+                    // Scroll to bottom
+                    chatMessages.scrollTop = chatMessages.scrollHeight;
+                });
+        }
+
+        // Check Auth State
+        auth.onAuthStateChanged((user) => {
+            if (user) {
+                // User is signed in
+                db.collection('users').doc(user.uid).get()
+                    .then((doc) => {
+                        if (doc.exists) {
+                            const userData = doc.data();
+                            loginScreen.style.display = 'none';
+                            registerScreen.style.display = 'none';
+                            dashboard.style.display = 'block';
+                            welcomeMessage.textContent = `Welcome to the Cosmos, ${userData.name}!`;
+                            
+                            // Load data
+                            loadStories();
+                            loadChatMessages();
+                        }
+                    });
+            } else {
+                // User is signed out
+                dashboard.style.display = 'none';
+                loginScreen.style.display = 'flex';
+            }
+        });
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', () => {
+            // Check if user is already logged in
+            // This will be handled by the auth state listener
+        });
+    </script>
+</body>
+</html>
