@@ -1431,45 +1431,46 @@
             </section>
 
             <!-- Stories Section -->
-            <section class="content-section" id="stories-section">
-                <h2 class="section-title">Cosmic Stories</h2>
-                
-                <!-- Story Submission Form -->
-                <div class="story-form">
-                    <h3>Share Your Cosmic Story</h3>
-                    <p>Have an interesting story to share with the universe? Submit it here!</p>
-                    
-                    <div class="form-group">
-                        <label for="storyTitle">Story Title</label>
-                        <input type="text" id="storyTitle" class="form-input" placeholder="Give your story a cosmic title">
-                    </div>
-                    
-                    <div class="form-group">
-                        <label for="storyContent">Your Story</label>
-                        <textarea id="storyContent" class="form-input" placeholder="Share your cosmic experience..."></textarea>
-                    </div>
-                    
-                    <div class="form-group">
-                        <label for="authorName">Your Name (for our records only)</label>
-                        <input type="text" id="authorName" class="form-input" placeholder="Your name (will not be displayed)">
-                        <p class="form-note">Your name will be stored privately and won't be displayed with your story.</p>
-                    </div>
-                    
-                    <button class="btn" id="submitStoryBtn">
-                        <i class="fas fa-paper-plane"></i> Submit to the Cosmos
-                    </button>
-                </div>
-                <div class="diary-entries" id="storiesContainer">
-                    <div class="diary-entry">
-                        <div class="entry-header">
-                            <h3>ANNOUNCEMENT</h3>
-                            <span class="entry-date">october 21, 2025</span>
-                        </div>
-                        <div class="entry-mood">✨</div>
-                        <p class="entry-content"><b>!! BIG BIG CHANGES COMING SOON !!</b> trying something new hope will release it soon but i think it will required login so please hope for the best.</p>
-                    </div> 
-                </div>
-            </section>
+            <!-- Stories Section -->
+<section class="content-section" id="stories-section">
+    <h2 class="section-title">Cosmic Stories</h2>
+    
+    <!-- Story Submission Form -->
+    <div class="story-form">
+        <h3>Share Your Cosmic Story</h3>
+        <p>Have an interesting story to share with the universe? Submit it here!</p>
+        
+        <div class="form-group">
+            <label for="storyTitle">Story Title</label>
+            <input type="text" id="storyTitle" class="form-input" placeholder="Give your story a cosmic title">
+        </div>
+        
+        <div class="form-group">
+            <label for="storyContent">Your Story</label>
+            <textarea id="storyContent" class="form-input" placeholder="Share your cosmic experience..."></textarea>
+        </div>
+        
+        <div class="form-group">
+            <label for="authorName">Your Name (for our records only)</label>
+            <input type="text" id="authorName" class="form-input" placeholder="Your name (will not be displayed)">
+            <p class="form-note">Your name will be stored privately and won't be displayed with your story.</p>
+        </div>
+        
+        <button class="btn" id="submitStoryBtn">
+            <i class="fas fa-paper-plane"></i> Submit to the Cosmos
+        </button>
+    </div>
+    
+    <!-- Stories Container - Will be populated dynamically -->
+    <div class="diary-entries" id="storiesContainer">
+        <!-- Stories will be loaded here from Firebase -->
+        <div class="no-stories-message" style="text-align: center; padding: 3rem; color: var(--text-secondary);">
+            <i class="fas fa-stars" style="font-size: 3rem; margin-bottom: 1rem; color: var(--accent-1);"></i>
+            <h3>No Stories Yet</h3>
+            <p>Be the first to share a cosmic story! Your story will appear here once submitted.</p>
+        </div>
+    </div>
+</section>
 
             <!-- Chat Section -->
             <section class="content-section" id="chat-section">
