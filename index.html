@@ -1101,6 +1101,71 @@
             .user-panel-container {
                 width: 100%;
             }
+            /* Personal Chat Styles */
+.chat-tabs {
+    display: flex;
+    gap: 0.5rem;
+    margin-bottom: 1rem;
+    flex-wrap: wrap;
+}
+
+.chat-tab {
+    padding: 0.8rem 1.5rem;
+    background: var(--card-bg);
+    border: 1px solid var(--card-border);
+    border-radius: 15px;
+    cursor: pointer;
+    transition: var(--transition);
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 0.9rem;
+}
+
+.chat-tab.active {
+    background: var(--gradient);
+    transform: translateY(-2px);
+}
+
+.chat-tab:hover:not(.active) {
+    background: rgba(106, 0, 255, 0.2);
+}
+
+.chat-tab-badge {
+    background: var(--accent-3);
+    color: white;
+    border-radius: 50%;
+    width: 20px;
+    height: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.7rem;
+}
+
+.private-chat-container {
+    display: none;
+}
+
+.private-chat-container.active {
+    display: flex;
+    flex-direction: column;
+}
+
+.start-chat-btn {
+    background: var(--gradient);
+    border: none;
+    color: white;
+    padding: 0.5rem 1rem;
+    border-radius: 10px;
+    cursor: pointer;
+    font-size: 0.8rem;
+    transition: var(--transition);
+}
+
+.start-chat-btn:hover {
+    transform: scale(1.05);
+    }
         }
     </style>
 </head>
