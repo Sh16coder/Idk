@@ -1529,771 +1529,506 @@
   appId: "1:622544158173:web:bef504dd215193fd4c4a34"
 };
 
-        // Initialize Firebase
-        firebase.initializeApp(firebaseConfig);
-        const auth = firebase.auth();
-        const db = firebase.firestore();
 
-        // DOM Elements
-        const loginScreen = document.getElementById('loginScreen');
-        const registerScreen = document.getElementById('registerScreen');
-        const dashboard = document.getElementById('dashboard');
-        const loginBtn = document.getElementById('loginBtn');
-        const registerBtn = document.getElementById('registerBtn');
-        const showRegister = document.getElementById('showRegister');
-        const showLogin = document.getElementById('showLogin');
-        const logoutBtn = document.getElementById('logoutBtn');
-        const themeToggle = document.getElementById('themeToggle');
-        const navBtns = document.querySelectorAll('.nav-btn');
-        const contentSections = document.querySelectorAll('.content-section');
-        const welcomeMessage = document.getElementById('welcomeMessage');
-        const submitStoryBtn = document.getElementById('submitStoryBtn');
-        const storiesContainer = document.getElementById('storiesContainer');
-        const chatMessages = document.getElementById('chatMessages');
-        const chatInput = document.getElementById('chatInput');
-        const sendMessageBtn = document.getElementById('sendMessageBtn');
-        const adminControls = document.getElementById('adminControls');
-        const toggleAdminView = document.getElementById('toggleAdminView');
-        const userListPanel = document.getElementById('userListPanel');
-        const userList = document.getElementById('userList');
-        const userPanelTitle = document.getElementById('userPanelTitle');
-        const adminReplyModal = document.getElementById('adminReplyModal');
-        const closeModal = document.querySelector('.close-modal');
-        const userNameDisplay = document.getElementById('userNameDisplay');
-        const originalMessage = document.getElementById('originalMessage');
-        const replyText = document.getElementById('replyText');
-        const sendReplyBtn = document.getElementById('sendReplyBtn');
-        const closeReplyBtn = document.getElementById('closeReplyBtn');
-        const chatModeBtns = document.querySelectorAll('.chat-mode-btn');
-        const groupChatHeader = document.getElementById('groupChatHeader');
-        const personalChatHeader = document.getElementById('personalChatHeader');
-        const groupChatWelcome = document.getElementById('groupChatWelcome');
-        const personalChatWelcome = document.getElementById('personalChatWelcome');
-        const personalChatName = document.getElementById('personalChatName');
-        const personalChatStatus = document.getElementById('personalChatStatus');
-        const personalChatAvatar = document.getElementById('personalChatAvatar');
+// Initialize Firebase
+firebase.initializeApp(firebaseConfig);
+const auth = firebase.auth();
+const db = firebase.firestore();
 
-        // Chat State
-        const ADMIN_EMAIL = "examstudy1602@gmail.com"; // REPLACE WITH YOUR EMAIL
-        let adminMode = false;
-        let selectedMessageForReply = null;
-        let onlineUsers = new Map();
-        let currentChatMode = 'group'; // 'group' or 'personal'
-        let currentPersonalChatUser = null;
-        let personalChatListeners = {};
+// DOM Elements
+const loginScreen = document.getElementById('loginScreen');
+const registerScreen = document.getElementById('registerScreen');
+const dashboard = document.getElementById('dashboard');
+const loginBtn = document.getElementById('loginBtn');
+const registerBtn = document.getElementById('registerBtn');
+const showRegister = document.getElementById('showRegister');
+const showLogin = document.getElementById('showLogin');
+const logoutBtn = document.getElementById('logoutBtn');
+const themeToggle = document.getElementById('themeToggle');
+const navBtns = document.querySelectorAll('.nav-btn');
+const contentSections = document.querySelectorAll('.content-section');
+const welcomeMessage = document.getElementById('welcomeMessage');
+const submitStoryBtn = document.getElementById('submitStoryBtn');
+const storiesContainer = document.getElementById('storiesContainer');
+const chatMessages = document.getElementById('chatMessages');
+const chatInput = document.getElementById('chatInput');
+const sendMessageBtn = document.getElementById('sendMessageBtn');
+const adminControls = document.getElementById('adminControls');
+const toggleAdminView = document.getElementById('toggleAdminView');
+const userListPanel = document.getElementById('userListPanel');
+const userList = document.getElementById('userList');
+const userPanelTitle = document.getElementById('userPanelTitle');
+const adminReplyModal = document.getElementById('adminReplyModal');
+const closeModal = document.querySelector('.close-modal');
+const userNameDisplay = document.getElementById('userNameDisplay');
+const originalMessage = document.getElementById('originalMessage');
+const replyText = document.getElementById('replyText');
+const sendReplyBtn = document.getElementById('sendReplyBtn');
+const closeReplyBtn = document.getElementById('closeReplyBtn');
+const chatModeBtns = document.querySelectorAll('.chat-mode-btn');
+const groupChatHeader = document.getElementById('groupChatHeader');
+const personalChatHeader = document.getElementById('personalChatHeader');
+const groupChatWelcome = document.getElementById('groupChatWelcome');
+const personalChatWelcome = document.getElementById('personalChatWelcome');
+const personalChatName = document.getElementById('personalChatName');
+const personalChatStatus = document.getElementById('personalChatStatus');
+const personalChatAvatar = document.getElementById('personalChatAvatar');
 
-        // Theme Toggle
-        themeToggle.addEventListener('click', () => {
-            document.body.classList.toggle('light-theme');
-            const icon = themeToggle.querySelector('i');
-            if (document.body.classList.contains('light-theme')) {
-                icon.classList.remove('fa-moon');
-                icon.classList.add('fa-sun');
-            } else {
-                icon.classList.remove('fa-sun');
-                icon.classList.add('fa-moon');
+// Chat State
+const ADMIN_EMAIL = "your-email@gmail.com"; // REPLACE WITH YOUR EMAIL
+let adminMode = false;
+let selectedMessageForReply = null;
+let onlineUsers = new Map();
+let currentChatMode = 'group'; // 'group' or 'personal'
+let currentPersonalChatUser = null;
+let personalChatListeners = {};
+let groupChatListener = null;
+
+// Theme Toggle
+themeToggle.addEventListener('click', () => {
+    document.body.classList.toggle('light-theme');
+    const icon = themeToggle.querySelector('i');
+    if (document.body.classList.contains('light-theme')) {
+        icon.classList.remove('fa-moon');
+        icon.classList.add('fa-sun');
+    } else {
+        icon.classList.remove('fa-sun');
+        icon.classList.add('fa-moon');
+    }
+});
+
+// Navigation
+navBtns.forEach(btn => {
+    btn.addEventListener('click', () => {
+        const targetSection = btn.getAttribute('data-section');
+        
+        navBtns.forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        
+        contentSections.forEach(section => {
+            section.classList.remove('active');
+            if (section.id === `${targetSection}-section`) {
+                section.classList.add('active');
             }
         });
+    });
+});
 
-        // Navigation
-        navBtns.forEach(btn => {
-            btn.addEventListener('click', () => {
-                const targetSection = btn.getAttribute('data-section');
-                
-                navBtns.forEach(b => b.classList.remove('active'));
-                btn.classList.add('active');
-                
-                contentSections.forEach(section => {
-                    section.classList.remove('active');
-                    if (section.id === `${targetSection}-section`) {
-                        section.classList.add('active');
-                    }
+// Chat Mode Selection
+chatModeBtns.forEach(btn => {
+    btn.addEventListener('click', () => {
+        const mode = btn.getAttribute('data-mode');
+        
+        chatModeBtns.forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        
+        currentChatMode = mode;
+        switchChatMode(mode);
+    });
+});
+
+function switchChatMode(mode) {
+    if (mode === 'group') {
+        groupChatHeader.style.display = 'flex';
+        personalChatHeader.style.display = 'none';
+        groupChatWelcome.style.display = currentPersonalChatUser ? 'none' : 'flex';
+        personalChatWelcome.style.display = 'none';
+        userPanelTitle.textContent = '🟢 Online Users';
+        currentPersonalChatUser = null;
+        
+        // Clear personal chat listeners
+        Object.values(personalChatListeners).forEach(unsubscribe => unsubscribe && unsubscribe());
+        personalChatListeners = {};
+        
+        loadGroupChatMessages();
+    } else {
+        groupChatHeader.style.display = 'none';
+        personalChatHeader.style.display = 'flex';
+        groupChatWelcome.style.display = 'none';
+        personalChatWelcome.style.display = currentPersonalChatUser ? 'none' : 'flex';
+        userPanelTitle.textContent = '💬 Chat with Users';
+        
+        // Make sure user panel is visible
+        userListPanel.style.display = 'block';
+        
+        loadPersonalChatUsers();
+    }
+    
+    // Clear chat messages if no active chat
+    if (!currentPersonalChatUser) {
+        const existingMessages = document.querySelectorAll('.firebase-message');
+        existingMessages.forEach(msg => msg.remove());
+    }
+}
+
+// Show Register Screen
+showRegister.addEventListener('click', (e) => {
+    e.preventDefault();
+    loginScreen.style.display = 'none';
+    registerScreen.style.display = 'flex';
+});
+
+// Show Login Screen
+showLogin.addEventListener('click', (e) => {
+    e.preventDefault();
+    registerScreen.style.display = 'none';
+    loginScreen.style.display = 'flex';
+});
+
+// Register Function
+registerBtn.addEventListener('click', () => {
+    const name = document.getElementById('registerName').value;
+    const email = document.getElementById('registerEmail').value;
+    const password = document.getElementById('registerPassword').value;
+    const errorElement = document.getElementById('registerError');
+    
+    if (!name || !email || !password) {
+        errorElement.textContent = 'Please fill in all fields';
+        errorElement.style.display = 'block';
+        return;
+    }
+    
+    if (password.length < 6) {
+        errorElement.textContent = 'Password should be at least 6 characters';
+        errorElement.style.display = 'block';
+        return;
+    }
+    
+    auth.createUserWithEmailAndPassword(email, password)
+        .then((userCredential) => {
+            const user = userCredential.user;
+            
+            return user.updateProfile({
+                displayName: name
+            }).then(() => {
+                return db.collection('users').doc(user.uid).set({
+                    name: name,
+                    email: email,
+                    createdAt: firebase.firestore.FieldValue.serverTimestamp()
                 });
             });
-        });
-
-        // Chat Mode Selection
-        chatModeBtns.forEach(btn => {
-            btn.addEventListener('click', () => {
-                const mode = btn.getAttribute('data-mode');
-                
-                chatModeBtns.forEach(b => b.classList.remove('active'));
-                btn.classList.add('active');
-                
-                currentChatMode = mode;
-                switchChatMode(mode);
-            });
-        });
-
-        function switchChatMode(mode) {
-            if (mode === 'group') {
-                groupChatHeader.style.display = 'flex';
-                personalChatHeader.style.display = 'none';
-                groupChatWelcome.style.display = 'flex';
-                personalChatWelcome.style.display = 'none';
-                userPanelTitle.textContent = '🟢 Online Users';
-                currentPersonalChatUser = null;
-                
-                // Clear personal chat listeners
-                Object.values(personalChatListeners).forEach(unsubscribe => unsubscribe());
-                personalChatListeners = {};
-                
-                loadGroupChatMessages();
-            } else {
-                groupChatHeader.style.display = 'none';
-                personalChatHeader.style.display = 'flex';
-                groupChatWelcome.style.display = 'none';
-                personalChatWelcome.style.display = 'flex';
-                userPanelTitle.textContent = '💬 Chat with Users';
-                
-                loadPersonalChatUsers();
-            }
-            
-            // Clear chat messages
-            const existingMessages = document.querySelectorAll('.firebase-message');
-            existingMessages.forEach(msg => msg.remove());
-        }
-
-        // Show Register Screen
-        showRegister.addEventListener('click', (e) => {
-            e.preventDefault();
-            loginScreen.style.display = 'none';
-            registerScreen.style.display = 'flex';
-        });
-
-        // Show Login Screen
-        showLogin.addEventListener('click', (e) => {
-            e.preventDefault();
+        })
+        .then(() => {
             registerScreen.style.display = 'none';
-            loginScreen.style.display = 'flex';
+            dashboard.style.display = 'block';
+            welcomeMessage.textContent = `Welcome to the Cosmos, ${name}!`;
+        })
+        .catch((error) => {
+            errorElement.textContent = error.message;
+            errorElement.style.display = 'block';
         });
+});
 
-        // Register Function
-        registerBtn.addEventListener('click', () => {
-            const name = document.getElementById('registerName').value;
-            const email = document.getElementById('registerEmail').value;
-            const password = document.getElementById('registerPassword').value;
-            const errorElement = document.getElementById('registerError');
-            
-            if (!name || !email || !password) {
-                errorElement.textContent = 'Please fill in all fields';
-                errorElement.style.display = 'block';
-                return;
+// Login Function
+loginBtn.addEventListener('click', () => {
+    const email = document.getElementById('loginEmail').value;
+    const password = document.getElementById('loginPassword').value;
+    const errorElement = document.getElementById('loginError');
+    
+    if (!email || !password) {
+        errorElement.textContent = 'Please fill in all fields';
+        errorElement.style.display = 'block';
+        return;
+    }
+    
+    auth.signInWithEmailAndPassword(email, password)
+        .then((userCredential) => {
+            const user = userCredential.user;
+            return db.collection('users').doc(user.uid).get();
+        })
+        .then((doc) => {
+            if (doc.exists) {
+                const userData = doc.data();
+                loginScreen.style.display = 'none';
+                dashboard.style.display = 'block';
+                welcomeMessage.textContent = `Welcome back, ${userData.name}!`;
             }
-            
-            if (password.length < 6) {
-                errorElement.textContent = 'Password should be at least 6 characters';
-                errorElement.style.display = 'block';
-                return;
-            }
-            
-            auth.createUserWithEmailAndPassword(email, password)
-                .then((userCredential) => {
-                    const user = userCredential.user;
-                    
-                    return user.updateProfile({
-                        displayName: name
-                    }).then(() => {
-                        return db.collection('users').doc(user.uid).set({
-                            name: name,
-                            email: email,
-                            createdAt: firebase.firestore.FieldValue.serverTimestamp()
-                        });
-                    });
-                })
-                .then(() => {
-                    registerScreen.style.display = 'none';
-                    dashboard.style.display = 'block';
-                    welcomeMessage.textContent = `Welcome to the Cosmos, ${name}!`;
-                })
-                .catch((error) => {
-                    errorElement.textContent = error.message;
-                    errorElement.style.display = 'block';
-                });
+        })
+        .catch((error) => {
+            errorElement.textContent = error.message;
+            errorElement.style.display = 'block';
         });
+});
 
-        // Login Function
-        loginBtn.addEventListener('click', () => {
-            const email = document.getElementById('loginEmail').value;
-            const password = document.getElementById('loginPassword').value;
-            const errorElement = document.getElementById('loginError');
-            
-            if (!email || !password) {
-                errorElement.textContent = 'Please fill in all fields';
-                errorElement.style.display = 'block';
-                return;
-            }
-            
-            auth.signInWithEmailAndPassword(email, password)
-                .then((userCredential) => {
-                    const user = userCredential.user;
-                    return db.collection('users').doc(user.uid).get();
-                })
-                .then((doc) => {
-                    if (doc.exists) {
-                        const userData = doc.data();
-                        loginScreen.style.display = 'none';
-                        dashboard.style.display = 'block';
-                        welcomeMessage.textContent = `Welcome back, ${userData.name}!`;
-                    }
-                })
-                .catch((error) => {
-                    errorElement.textContent = error.message;
-                    errorElement.style.display = 'block';
-                });
+// Logout Function
+logoutBtn.addEventListener('click', () => {
+    // Set user offline before logging out
+    const user = auth.currentUser;
+    if (user) {
+        const onlineRef = db.collection('onlineUsers');
+        const userStatusRef = onlineRef.doc(user.uid);
+        userStatusRef.update({
+            isOnline: false,
+            lastSeen: firebase.firestore.FieldValue.serverTimestamp()
         });
+    }
+    
+    auth.signOut().then(() => {
+        dashboard.style.display = 'none';
+        loginScreen.style.display = 'flex';
+        
+        document.getElementById('loginEmail').value = '';
+        document.getElementById('loginPassword').value = '';
+        document.getElementById('registerName').value = '';
+        document.getElementById('registerEmail').value = '';
+        document.getElementById('registerPassword').value = '';
+    });
+});
 
-        // Logout Function
-        logoutBtn.addEventListener('click', () => {
-            auth.signOut().then(() => {
-                dashboard.style.display = 'none';
-                loginScreen.style.display = 'flex';
-                
-                document.getElementById('loginEmail').value = '';
-                document.getElementById('loginPassword').value = '';
-                document.getElementById('registerName').value = '';
-                document.getElementById('registerEmail').value = '';
-                document.getElementById('registerPassword').value = '';
+// Check Admin Status
+function checkAdminStatus(user) {
+    if (user && user.email === ADMIN_EMAIL) {
+        adminControls.style.display = 'block';
+        userListPanel.style.display = 'block';
+        startTrackingOnlineUsers();
+        return true;
+    } else {
+        // Show user panel for all users in personal chat mode
+        userListPanel.style.display = 'block';
+        adminControls.style.display = 'none';
+        startTrackingOnlineUsers(); // Start tracking for regular users too
+    }
+    return false;
+}
+
+// Toggle Admin View
+toggleAdminView.addEventListener('click', () => {
+    adminMode = !adminMode;
+    if (adminMode) {
+        toggleAdminView.innerHTML = '<i class="fas fa-user"></i> User View';
+        toggleAdminView.style.background = 'var(--gradient)';
+        toggleAdminView.style.color = 'white';
+    } else {
+        toggleAdminView.innerHTML = '<i class="fas fa-user-shield"></i> Admin View';
+        toggleAdminView.style.background = 'linear-gradient(135deg, #ffd700, #ff6b00)';
+        toggleAdminView.style.color = '#000';
+    }
+    if (currentChatMode === 'group') {
+        loadGroupChatMessages();
+    }
+});
+
+// Track Online Users
+function startTrackingOnlineUsers() {
+    const onlineRef = db.collection('onlineUsers');
+    const user = auth.currentUser;
+    
+    if (user) {
+        const userStatusRef = onlineRef.doc(user.uid);
+        
+        // Set user as online
+        userStatusRef.set({
+            uid: user.uid,
+            email: user.email,
+            name: user.displayName || 'Anonymous',
+            lastSeen: firebase.firestore.FieldValue.serverTimestamp(),
+            isOnline: true
+        });
+        
+        // Remove user when they go offline
+        window.addEventListener('beforeunload', () => {
+            userStatusRef.update({
+                isOnline: false,
+                lastSeen: firebase.firestore.FieldValue.serverTimestamp()
             });
         });
-
-        // Check Admin Status
-        function checkAdminStatus(user) {
-            if (user && user.email === ADMIN_EMAIL) {
-                adminControls.style.display = 'block';
-                userListPanel.style.display = 'block';
-                startTrackingOnlineUsers();
-                return true;
-            } else {
-                userListPanel.style.display = 'block'; // Show for all users in personal chat
-                adminControls.style.display = 'none';
-            }
-            return false;
-        }
-
-        // Toggle Admin View
-        toggleAdminView.addEventListener('click', () => {
-            adminMode = !adminMode;
-            if (adminMode) {
-                toggleAdminView.innerHTML = '<i class="fas fa-user"></i> User View';
-                toggleAdminView.style.background = 'var(--gradient)';
-                toggleAdminView.style.color = 'white';
-            } else {
-                toggleAdminView.innerHTML = '<i class="fas fa-user-shield"></i> Admin View';
-                toggleAdminView.style.background = 'linear-gradient(135deg, #ffd700, #ff6b00)';
-                toggleAdminView.style.color = '#000';
-            }
-            if (currentChatMode === 'group') {
-                loadGroupChatMessages();
-            }
-        });
-
-        // Track Online Users
-        function startTrackingOnlineUsers() {
-            const onlineRef = db.collection('onlineUsers');
-            const user = auth.currentUser;
+    }
+    
+    // Listen for online users
+    onlineRef.where('isOnline', '==', true)
+        .onSnapshot((snapshot) => {
+            onlineUsers.clear();
+            userList.innerHTML = '';
             
-            if (user) {
-                const userStatusRef = onlineRef.doc(user.uid);
-                
-                userStatusRef.set({
-                    uid: user.uid,
-                    email: user.email,
-                    name: user.displayName || 'Anonymous',
-                    lastSeen: firebase.firestore.FieldValue.serverTimestamp(),
-                    isOnline: true
-                });
-                
-                window.addEventListener('beforeunload', () => {
-                    userStatusRef.update({
-                        isOnline: false,
-                        lastSeen: firebase.firestore.FieldValue.serverTimestamp()
-                    });
-                });
+            if (snapshot.empty) {
+                userList.innerHTML = '<div style="text-align: center; color: var(--text-secondary); padding: 1rem;">No users online</div>';
+                return;
             }
-            
-            onlineRef.where('isOnline', '==', true)
-                .onSnapshot((snapshot) => {
-                    onlineUsers.clear();
-                    userList.innerHTML = '';
-                    
-                    snapshot.forEach((doc) => {
-                        const userData = doc.data();
-                        if (userData.uid !== auth.currentUser.uid) {
-                            onlineUsers.set(userData.uid, userData);
-                            
-                            const userItem = document.createElement('div');
-                            userItem.className = 'user-item';
-                            userItem.setAttribute('data-user-id', userData.uid);
-                            userItem.innerHTML = `
-                                <div class="user-item-name">
-                                    <i class="fas fa-user"></i>
-                                    ${userData.name}
-                                    <span class="message-count" id="count-${userData.uid}">0</span>
-                                    <span class="unread-badge" id="unread-${userData.uid}" style="display: none;">0</span>
-                                </div>
-                                <div class="user-item-actions">
-                                    <button class="user-chat-btn start-personal-chat" data-user-id="${userData.uid}" data-user-name="${userData.name}">
-                                        <i class="fas fa-comment"></i> Chat
-                                    </button>
-                                </div>
-                            `;
-                            userList.appendChild(userItem);
-                        }
-                    });
-                    
-                    document.querySelectorAll('.start-personal-chat').forEach(btn => {
-                        btn.addEventListener('click', (e) => {
-                            const userId = e.target.closest('.start-personal-chat').getAttribute('data-user-id');
-                            const userName = e.target.closest('.start-personal-chat').getAttribute('data-user-name');
-                            startPersonalChat(userId, userName);
-                        });
-                    });
-                });
-        }
 
-        // Start Personal Chat
-        function startPersonalChat(userId, userName) {
-            if (currentChatMode !== 'personal') {
-                // Switch to personal chat mode
-                chatModeBtns.forEach(btn => {
-                    if (btn.getAttribute('data-mode') === 'personal') {
-                        btn.click();
+            let hasUsers = false;
+
+            snapshot.forEach((doc) => {
+                const userData = doc.data();
+                
+                // Don't show current user in the list
+                if (userData.uid !== auth.currentUser.uid) {
+                    hasUsers = true;
+                    onlineUsers.set(userData.uid, userData);
+                    
+                    const userItem = document.createElement('div');
+                    userItem.className = 'user-item';
+                    userItem.setAttribute('data-user-id', userData.uid);
+                    
+                    // Check if this is the currently selected user
+                    if (currentPersonalChatUser && currentPersonalChatUser.uid === userData.uid) {
+                        userItem.classList.add('active');
                     }
-                });
-            }
-            
-            currentPersonalChatUser = { uid: userId, name: userName };
-            personalChatName.textContent = userName;
-            personalChatStatus.textContent = 'Online - Personal Chat';
-            personalChatAvatar.textContent = userName.charAt(0).toUpperCase();
-            personalChatWelcome.style.display = 'none';
-            
-            // Update active user in list
-            document.querySelectorAll('.user-item').forEach(item => {
-                item.classList.remove('active');
-                if (item.getAttribute('data-user-id') === userId) {
-                    item.classList.add('active');
+                    
+                    userItem.innerHTML = `
+                        <div class="user-item-name">
+                            <i class="fas fa-user"></i>
+                            ${userData.name}
+                            <span class="message-count" id="count-${userData.uid}">0</span>
+                            <span class="unread-badge" id="unread-${userData.uid}" style="display: none;">0</span>
+                        </div>
+                        <div class="user-item-actions">
+                            <button class="user-chat-btn start-personal-chat" data-user-id="${userData.uid}" data-user-name="${userData.name}">
+                                <i class="fas fa-comment"></i> Chat
+                            </button>
+                        </div>
+                    `;
+                    userList.appendChild(userItem);
                 }
             });
-            
-            loadPersonalChatMessages(userId);
-        }
 
-        // Load Personal Chat Users
-        function loadPersonalChatUsers() {
-            // Implementation for loading users you've chatted with
-            const user = auth.currentUser;
-            if (!user) return;
-            
-            // Load users from personal chats
-            db.collection('personalChats')
-                .where('participants', 'array-contains', user.uid)
-                .get()
-                .then((snapshot) => {
-                    snapshot.forEach((doc) => {
-                        const chatData = doc.data();
-                        const otherUserId = chatData.participants.find(uid => uid !== user.uid);
-                        // You would need to fetch user details here
-                    });
-                });
-        }
-
-        // Load Personal Chat Messages
-        function loadPersonalChatMessages(otherUserId) {
-            // Clear existing messages
-            const existingMessages = document.querySelectorAll('.firebase-message');
-            existingMessages.forEach(msg => msg.remove());
-            
-            const user = auth.currentUser;
-            if (!user) return;
-            
-            // Unsubscribe from previous personal chat
-            if (personalChatListeners[otherUserId]) {
-                personalChatListeners[otherUserId]();
+            if (!hasUsers) {
+                userList.innerHTML = '<div style="text-align: center; color: var(--text-secondary); padding: 1rem;">No other users online</div>';
             }
-            
-            // Generate chat ID for the two users
-            const chatId = [user.uid, otherUserId].sort().join('_');
-            
-            // Listen for personal messages
-            const unsubscribe = db.collection('personalMessages')
-                .where('chatId', '==', chatId)
-                .orderBy('timestamp', 'asc')
-                .onSnapshot((querySnapshot) => {
-                    querySnapshot.forEach((doc) => {
-                        const message = doc.data();
-                        displayPersonalMessage(message);
-                    });
-                    
-                    chatMessages.scrollTop = chatMessages.scrollHeight;
-                });
-            
-            personalChatListeners[otherUserId] = unsubscribe;
-            
-            // Create/update personal chat document
-            db.collection('personalChats').doc(chatId).set({
-                participants: [user.uid, otherUserId],
-                lastMessage: '',
-                lastMessageTime: firebase.firestore.FieldValue.serverTimestamp(),
-                updatedAt: firebase.firestore.FieldValue.serverTimestamp()
-            }, { merge: true });
-        }
 
-        // Display Personal Message
-        function displayPersonalMessage(message) {
-            const messageElement = document.createElement('div');
-            messageElement.className = 'message firebase-message personal';
-            
-            const isCurrentUser = auth.currentUser && auth.currentUser.uid === message.senderId;
-            const isAdminMessage = message.senderEmail === ADMIN_EMAIL;
-            
-            let messageClass = 'message me firebase-message personal';
-            let senderName = '';
-            
-            if (isCurrentUser) {
-                messageClass = 'message user firebase-message personal';
-                senderName = `<div class="user-badge">💬 You <span class="private-badge">🔒 Private</span></div>`;
-            } else if (isAdminMessage) {
-                messageClass = 'message admin firebase-message personal';
-                senderName = `<div class="admin-badge">👑 Shaurya <span class="private-badge">🔒 Private</span></div>`;
-            } else {
-                messageClass = 'message me firebase-message personal';
-                senderName = `<div class="user-badge">👤 ${message.senderName} <span class="private-badge">🔒 Private</span></div>`;
-            }
-            
-            messageElement.className = messageClass;
-            
-            const time = message.timestamp ? message.timestamp.toDate() : new Date();
-            const formattedTime = time.toLocaleTimeString('en-US', {
-                hour: '2-digit',
-                minute: '2-digit'
-            });
-            
-            messageElement.innerHTML = `
-                ${senderName}
-                <p>${message.message}</p>
-                <div class="message-footer">
-                    <span class="message-time">${formattedTime}</span>
-                </div>
-            `;
-            
-            chatMessages.appendChild(messageElement);
-        }
-
-        // Load Group Chat Messages
-        function loadGroupChatMessages() {
-            const existingMessages = document.querySelectorAll('.firebase-message');
-            existingMessages.forEach(msg => msg.remove());
-            
-            db.collection('groupMessages')
-                .orderBy('timestamp', 'asc')
-                .onSnapshot((querySnapshot) => {
-                    querySnapshot.forEach((doc) => {
-                        const message = doc.data();
-                        displayGroupMessage(message, doc.id);
-                    });
-                    
-                    chatMessages.scrollTop = chatMessages.scrollHeight;
-                });
-        }
-
-        // Display Group Message
-        function displayGroupMessage(message, messageId) {
-            const messageElement = document.createElement('div');
-            
-            const isCurrentUser = auth.currentUser && auth.currentUser.uid === message.userId;
-            const isAdminMessage = message.isAdmin;
-            const isAdminUser = auth.currentUser && auth.currentUser.email === ADMIN_EMAIL;
-            
-            let messageClass = 'message me firebase-message';
-            let senderName = '';
-            let replyButton = '';
-            
-            if (isCurrentUser) {
-                messageClass = 'message user firebase-message';
-                senderName = `<div class="user-badge">💬 You</div>`;
-            } else if (isAdminMessage) {
-                messageClass = 'message admin firebase-message';
-                senderName = `<div class="admin-badge">👑 Shaurya (You)</div>`;
-            } else {
-                senderName = `<div class="user-badge">👤 ${message.userName}</div>`;
-                
-                if (adminMode && isAdminUser) {
-                    replyButton = `<button class="reply-btn" data-message-id="${messageId}" data-user-id="${message.userId}" data-user-name="${message.userName}" data-message="${message.message}">
-                        <i class="fas fa-reply"></i> Reply
-                    </button>`;
-                }
-            }
-            
-            messageElement.className = messageClass;
-            messageElement.setAttribute('data-user-id', message.userId);
-            
-            const time = message.timestamp ? message.timestamp.toDate() : new Date();
-            const formattedTime = time.toLocaleTimeString('en-US', {
-                hour: '2-digit',
-                minute: '2-digit'
-            });
-            
-            messageElement.innerHTML = `
-                ${senderName}
-                <p>${message.message}</p>
-                <div class="message-footer">
-                    <span class="message-time">${formattedTime}</span>
-                    ${replyButton}
-                </div>
-            `;
-            
-            chatMessages.appendChild(messageElement);
-            
-            // Add reply button listeners
-            document.querySelectorAll('.reply-btn').forEach(btn => {
+            // Add event listeners to chat buttons
+            document.querySelectorAll('.start-personal-chat').forEach(btn => {
                 btn.addEventListener('click', (e) => {
-                    const messageId = e.target.closest('.reply-btn').getAttribute('data-message-id');
-                    const userId = e.target.closest('.reply-btn').getAttribute('data-user-id');
-                    const userName = e.target.closest('.reply-btn').getAttribute('data-user-name');
-                    const messageText = e.target.closest('.reply-btn').getAttribute('data-message');
-                    openReplyModal(messageId, userId, userName, messageText);
+                    const userId = e.target.closest('.start-personal-chat').getAttribute('data-user-id');
+                    const userName = e.target.closest('.start-personal-chat').getAttribute('data-user-name');
+                    startPersonalChat(userId, userName);
                 });
             });
-        }
+        }, (error) => {
+            console.error('Error loading users:', error);
+            userList.innerHTML = '<div style="text-align: center; color: #ff6b6b; padding: 1rem;">Error loading users</div>';
+        });
+}
 
-        // Send Message Function
-        function sendMessage() {
-            const message = chatInput.value.trim();
-            if (!message) return;
+// Load Personal Chat Users
+function loadPersonalChatUsers() {
+    const user = auth.currentUser;
+    if (!user) return;
+
+    // Clear existing user list
+    userList.innerHTML = '';
+
+    // Show loading state
+    userList.innerHTML = '<div style="text-align: center; color: var(--text-secondary); padding: 1rem;">Loading users...</div>';
+
+    // Get all online users
+    db.collection('onlineUsers')
+        .where('isOnline', '==', true)
+        .onSnapshot((snapshot) => {
+            userList.innerHTML = ''; // Clear loading message
             
-            const user = auth.currentUser;
-            if (!user) {
-                alert('You need to be logged in to send messages');
+            if (snapshot.empty) {
+                userList.innerHTML = '<div style="text-align: center; color: var(--text-secondary); padding: 1rem;">No users online</div>';
                 return;
             }
-            
-            if (currentChatMode === 'group') {
-                // Send group message
-                const isAdmin = user.email === ADMIN_EMAIL;
+
+            let hasUsers = false;
+
+            snapshot.forEach((doc) => {
+                const userData = doc.data();
                 
-                db.collection('groupMessages').add({
-                    userId: user.uid,
-                    userName: user.displayName || 'Anonymous',
-                    message: message,
-                    isAdmin: isAdmin,
-                    timestamp: firebase.firestore.FieldValue.serverTimestamp()
-                })
-                .then(() => {
-                    chatInput.value = '';
-                })
-                .catch((error) => {
-                    console.error('Error sending message: ', error);
-                    alert('Error sending message. Please try again.');
-                });
-            } else if (currentChatMode === 'personal' && currentPersonalChatUser) {
-                // Send personal message
-                const chatId = [user.uid, currentPersonalChatUser.uid].sort().join('_');
-                
-                db.collection('personalMessages').add({
-                    chatId: chatId,
-                    senderId: user.uid,
-                    senderName: user.displayName || 'Anonymous',
-                    senderEmail: user.email,
-                    receiverId: currentPersonalChatUser.uid,
-                    message: message,
-                    timestamp: firebase.firestore.FieldValue.serverTimestamp()
-                })
-                .then(() => {
-                    chatInput.value = '';
+                // Don't show current user in the list
+                if (userData.uid !== auth.currentUser.uid) {
+                    hasUsers = true;
                     
-                    // Update personal chat document
-                    db.collection('personalChats').doc(chatId).set({
-                        participants: [user.uid, currentPersonalChatUser.uid],
-                        lastMessage: message,
-                        lastMessageTime: firebase.firestore.FieldValue.serverTimestamp(),
-                        updatedAt: firebase.firestore.FieldValue.serverTimestamp()
-                    }, { merge: true });
-                })
-                .catch((error) => {
-                    console.error('Error sending personal message: ', error);
-                    alert('Error sending message. Please try again.');
-                });
-            } else {
-                alert('Please select a user to chat with');
-            }
-        }
-
-        // Submit Story Function
-        submitStoryBtn.addEventListener('click', () => {
-            const title = document.getElementById('storyTitle').value;
-            const content = document.getElementById('storyContent').value;
-            const authorName = document.getElementById('authorName').value;
-            
-            if (!title || !content) {
-                alert('Please fill in both title and story content');
-                return;
-            }
-            
-            const user = auth.currentUser;
-            if (!user) {
-                alert('You need to be logged in to submit a story');
-                return;
-            }
-            
-            db.collection('stories').add({
-                title: title,
-                content: content,
-                authorName: authorName,
-                userId: user.uid,
-                createdAt: firebase.firestore.FieldValue.serverTimestamp()
-            })
-            .then(() => {
-                document.getElementById('storyTitle').value = '';
-                document.getElementById('storyContent').value = '';
-                document.getElementById('authorName').value = '';
-                alert('Your story has been submitted to the cosmos!');
-                loadStories();
-            })
-            .catch((error) => {
-                console.error('Error adding story: ', error);
-                alert('Error submitting story. Please try again.');
+                    const userItem = document.createElement('div');
+                    userItem.className = 'user-item';
+                    userItem.setAttribute('data-user-id', userData.uid);
+                    
+                    // Check if this is the currently selected user
+                    if (currentPersonalChatUser && currentPersonalChatUser.uid === userData.uid) {
+                        userItem.classList.add('active');
+                    }
+                    
+                    userItem.innerHTML = `
+                        <div class="user-item-name">
+                            <i class="fas fa-user"></i>
+                            ${userData.name}
+                            <span class="message-count" id="count-${userData.uid}">0</span>
+                            <span class="unread-badge" id="unread-${userData.uid}" style="display: none;">0</span>
+                        </div>
+                        <div class="user-item-actions">
+                            <button class="user-chat-btn start-personal-chat" data-user-id="${userData.uid}" data-user-name="${userData.name}">
+                                <i class="fas fa-comment"></i> Chat
+                            </button>
+                        </div>
+                    `;
+                    userList.appendChild(userItem);
+                }
             });
-        });
 
-        // Load Stories
-        function loadStories() {
-            const firebaseStories = document.querySelectorAll('.firebase-story');
-            firebaseStories.forEach(story => story.remove());
-            
-            db.collection('stories')
-                .orderBy('createdAt', 'desc')
-                .get()
-                .then((querySnapshot) => {
-                    querySnapshot.forEach((doc) => {
-                        const story = doc.data();
-                        const storyElement = document.createElement('div');
-                        storyElement.className = 'diary-entry firebase-story';
-                        
-                        const date = story.createdAt ? story.createdAt.toDate() : new Date();
-                        const formattedDate = date.toLocaleDateString('en-US', {
-                            year: 'numeric',
-                            month: 'long',
-                            day: 'numeric'
-                        });
-                        
-                        storyElement.innerHTML = `
-                            <div class="entry-header">
-                                <span class="entry-date">${formattedDate}</span>
-                                <span class="entry-mood">🌌</span>
-                            </div>
-                            <h3>${story.title}</h3>
-                            <div class="entry-content">
-                                <p>${story.content}</p>
-                            </div>
-                        `;
-                        
-                        storiesContainer.appendChild(storyElement);
-                    });
-                })
-                .catch((error) => {
-                    console.error('Error loading stories: ', error);
+            if (!hasUsers) {
+                userList.innerHTML = '<div style="text-align: center; color: var(--text-secondary); padding: 1rem;">No other users online</div>';
+            }
+
+            // Add event listeners to chat buttons
+            document.querySelectorAll('.start-personal-chat').forEach(btn => {
+                btn.addEventListener('click', (e) => {
+                    const userId = e.target.closest('.start-personal-chat').getAttribute('data-user-id');
+                    const userName = e.target.closest('.start-personal-chat').getAttribute('data-user-name');
+                    startPersonalChat(userId, userName);
                 });
-        }
-
-        // Open Reply Modal
-        function openReplyModal(messageId, userId, userName, messageText) {
-            selectedMessageForReply = { messageId, userId, userName };
-            userNameDisplay.textContent = `Replying to: ${userName}`;
-            originalMessage.innerHTML = `<strong>Their message:</strong> "${messageText}"`;
-            replyText.value = '';
-            replyText.focus();
-            adminReplyModal.style.display = 'flex';
-        }
-
-        // Send Reply
-        sendReplyBtn.addEventListener('click', () => {
-            const replyMessage = replyText.value.trim();
-            if (!replyMessage) {
-                alert('Please enter a reply message');
-                return;
-            }
-            
-            const user = auth.currentUser;
-            if (!user || user.email !== ADMIN_EMAIL) {
-                alert('You need to be admin to send replies');
-                return;
-            }
-            
-            db.collection('groupMessages').add({
-                userId: user.uid,
-                userName: 'Shaurya',
-                message: replyMessage,
-                isAdmin: true,
-                isReplyTo: selectedMessageForReply.messageId,
-                replyToUserId: selectedMessageForReply.userId,
-                replyToUserName: selectedMessageForReply.userName,
-                timestamp: firebase.firestore.FieldValue.serverTimestamp()
-            })
-            .then(() => {
-                adminReplyModal.style.display = 'none';
-                replyText.value = '';
-                selectedMessageForReply = null;
-            })
-            .catch((error) => {
-                console.error('Error sending reply: ', error);
-                alert('Error sending reply. Please try again.');
             });
+        }, (error) => {
+            console.error('Error loading users:', error);
+            userList.innerHTML = '<div style="text-align: center; color: #ff6b6b; padding: 1rem;">Error loading users</div>';
         });
+}
 
-        // Event Listeners
-        sendMessageBtn.addEventListener('click', sendMessage);
-        chatInput.addEventListener('keypress', (e) => {
-            if (e.key === 'Enter') {
-                sendMessage();
-            }
-        });
+// Start Personal Chat
+function startPersonalChat(userId, userName) {
+    if (currentChatMode !== 'personal') {
+        // Switch to personal chat mode
+        const personalChatBtn = document.querySelector('[data-mode="personal"]');
+        if (personalChatBtn) {
+            personalChatBtn.click();
+        }
+        // Small delay to ensure mode switch completes
+        setTimeout(() => {
+            completePersonalChatStart(userId, userName);
+        }, 100);
+    } else {
+        completePersonalChatStart(userId, userName);
+    }
+}
 
-        closeModal.addEventListener('click', () => {
-            adminReplyModal.style.display = 'none';
-        });
+function completePersonalChatStart(userId, userName) {
+    currentPersonalChatUser = { uid: userId, name: userName };
+    personalChatName.textContent = userName;
+    personalChatStatus.textContent = 'Online - Personal Chat';
+    personalChatAvatar.textContent = userName.charAt(0).toUpperCase();
+    personalChatWelcome.style.display = 'none';
+    groupChatWelcome.style.display = 'none';
+    
+    // Update active user in list
+    document.querySelectorAll('.user-item').forEach(item => {
+        item.classList.remove('active');
+        if (item.getAttribute('data-user-id') === userId) {
+            item.classList.add('active');
+        }
+    });
+    
+    // Clear any existing messages first
+    const existingMessages = document.querySelectorAll('.firebase-message');
+    existingMessages.forEach(msg => msg.remove());
+    
+    loadPersonalChatMessages(userId);
+}
 
-        closeReplyBtn.addEventListener('click', () => {
-            adminReplyModal.style.display = 'none';
-        });
-
-        window.addEventListener('click', (e) => {
-            if (e.target === adminReplyModal) {
-                adminReplyModal.style.display = 'none';
-            }
-        });
-
-        // Auth State Listener
-        auth.onAuthStateChanged((user) => {
-            if (user) {
-                db.collection('users').doc(user.uid).get()
-                    .then((doc) => {
-                        if (doc.exists) {
-                            const userData = doc.data();
-                            loginScreen.style.display = 'none';
-                            registerScreen.style.display = 'none';
-                            dashboard.style.display = 'block';
-                            welcomeMessage.textContent = `Welcome to the Cosmos, ${userData.name}!`;
-                            
-                            checkAdminStatus(user);
-                            loadStories();
-                            loadGroupChatMessages();
-                        }
-                    });
-            } else {
-                dashboard.style.display = 'none';
-                adminControls.style.display = 'none';
-                userListPanel.style.display = 'none';
-                loginScreen.style.display = 'flex';
-            }
-        });
-
-        // Demo login for testing
-        document.addEventListener('DOMContentLoaded', function() {
-            document.getElementById('loginEmail').value = 'test@example.com';
-            document.getElementById('loginPassword').value = 'password123';
-        });
+// Load Personal Chat Messages
+function loadPersonalChatMessages(otherUserId) {
+    const user = auth.currentUser;
+    if (!user) return;
+    
+    // Unsubscribe from previous personal chat
+    if (personalChatListeners[otherUserId]) {
+        personalChatListeners[otherUserId]();
+    }
+    
+    // Generate chat ID for the two users
+    const chatId = [user.uid, otherUserId].sort().join('_');
+    
+    // Show loading message
+    
     </script>
 </body>
 </html>
