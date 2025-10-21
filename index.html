@@ -1492,7 +1492,7 @@
                                     <p>This is a public space where everyone can chat together. Your messages will be visible to all users.</p>
                                 </div>
                                 
-                                <!-- Personal Chat Welcome -->
+                                <!-- Personal Chat -->
                                 <div class="no-chat-selected" id="personalChatWelcome" style="display: none;">
                                     <i class="fas fa-user-lock"></i>
                                     <h3>Personal Chat</h3>
@@ -1520,12 +1520,12 @@
     <script>
         // Firebase Configuration - REPLACE WITH YOUR ACTUAL CONFIG
 const firebaseConfig = {
-    apiKey: "AIzaSyC8hK0nLk6Xq9Q5w5Q5w5Q5w5Q5w5Q5w5Q5w",
-    authDomain: "cosmic-dimension.firebaseapp.com",
-    projectId: "cosmic-dimension",
-    storageBucket: "cosmic-dimension.appspot.com",
-    messagingSenderId: "123456789",
-    appId: "1:123456789:web:abcdef123456"
+  apiKey: "AIzaSyDRw4QHPAWXty31nryeRFmeMztb_9j8-TQ",
+  authDomain: "adminsblog-9cd55.firebaseapp.com",
+  projectId: "adminsblog-9cd55",
+  storageBucket: "adminsblog-9cd55.firebasestorage.app",
+  messagingSenderId: "622544158173",
+  appId: "1:622544158173:web:bef504dd215193fd4c4a34"
 };
 
 // Initialize Firebase
@@ -2025,7 +2025,478 @@ function loadPersonalChatMessages(otherUserId) {
     // Generate chat ID for the two users
     const chatId = [user.uid, otherUserId].sort().join('_');
     
+    // Show loading message
+const loadingMsg = document.createElement('div');
+loadingMsg.className = 'no-chat-selected';
+loadingMsg.innerHTML = `
+    <i class="fas fa-spinner fa-spin"></i>
+    <h3>Loading conversation...</h3>
+`;
+chatMessages.appendChild(loadingMsg);
+
+// Listen for personal messages
+const unsubscribe = db.collection('personalMessages')
+    .where('chatId', '==', chatId)
+    .orderBy('timestamp', 'asc')
+    .onSnapshot((querySnapshot) => {
+        // Remove loading message
+        const loadingMsg = document.querySelector('.no-chat-selected');
+        if (loadingMsg) loadingMsg.remove();
+        
+        // Clear existing messages
+        const existingMessages = document.querySelectorAll('.firebase-message');
+        existingMessages.forEach(msg => msg.remove());
+        
+        if (querySnapshot.empty) {
+            // No messages yet - show empty state
+            const emptyMsg = document.createElement('div');
+            emptyMsg.className = 'no-chat-selected';
+            emptyMsg.innerHTML = `
+                <i class="fas fa-comments"></i>
+                <h3>Start a conversation</h3>
+                <p>Send a message to begin your private chat with ${currentPersonalChatUser.name}</p>
+            `;
+            chatMessages.appendChild(emptyMsg);
+        } else {
+            querySnapshot.forEach((doc) => {
+                const message = doc.data();
+                displayPersonalMessage(message);
+            });
+        }
+        
+        chatMessages.scrollTop = chatMessages.scrollHeight;
+    }, (error) => {
+        console.error('Error loading personal messages:', error);
+        const loadingMsg = document.querySelector('.no-chat-selected');
+        if (loadingMsg) loadingMsg.remove();
+        
+        const errorMsg = document.createElement('div');
+        errorMsg.className = 'no-chat-selected';
+        errorMsg.innerHTML = `
+            <i class="fas fa-exclamation-triangle"></i>
+            <h3>Error loading messages</h3>
+            <p>Please try again</p>
+        `;
+        chatMessages.appendChild(errorMsg);
+    });
+
+personalChatListeners[otherUserId] = unsubscribe;
+
+// Create/update personal chat document
+db.collection('personalChats').doc(chatId).set({
+    participants: [user.uid, otherUserId],
+    lastMessage: '',
+    lastMessageTime: firebase.firestore.FieldValue.serverTimestamp(),
+    updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+}, { merge: true }).catch(error => {
+    console.error('Error creating personal chat:', error);
+});
+
+// Display Personal Message
+function displayPersonalMessage(message) {
+    const messageElement = document.createElement('div');
     
+    const isCurrentUser = auth.currentUser && auth.currentUser.uid === message.senderId;
+    const isAdminMessage = message.senderEmail === ADMIN_EMAIL;
+    
+    let messageClass = 'message me firebase-message personal';
+    let senderName = '';
+    
+    if (isCurrentUser) {
+        messageClass = 'message user firebase-message personal';
+        senderName = `<div class="user-badge">💬 You <span class="private-badge">🔒 Private</span></div>`;
+    } else if (isAdminMessage) {
+        messageClass = 'message admin firebase-message personal';
+        senderName = `<div class="admin-badge">👑 Shaurya <span class="private-badge">🔒 Private</span></div>`;
+    } else {
+        messageClass = 'message me firebase-message personal';
+        senderName = `<div class="user-badge">👤 ${message.senderName} <span class="private-badge">🔒 Private</span></div>`;
+    }
+    
+    messageElement.className = messageClass;
+    
+    const time = message.timestamp ? message.timestamp.toDate() : new Date();
+    const formattedTime = time.toLocaleTimeString('en-US', {
+        hour: '2-digit',
+        minute: '2-digit'
+    });
+    
+    messageElement.innerHTML = `
+        ${senderName}
+        <p>${message.message}</p>
+        <div class="message-footer">
+            <span class="message-time">${formattedTime}</span>
+        </div>
+    `;
+    
+    chatMessages.appendChild(messageElement);
+}
+
+// Load Group Chat Messages
+function loadGroupChatMessages() {
+    // Clear existing messages first
+    const existingMessages = document.querySelectorAll('.firebase-message');
+    existingMessages.forEach(msg => msg.remove());
+    
+    // Unsubscribe from previous listener if exists
+    if (groupChatListener) {
+        groupChatListener();
+    }
+    
+    groupChatListener = db.collection('groupMessages')
+        .orderBy('timestamp', 'asc')
+        .onSnapshot((querySnapshot) => {
+            // Clear messages again in case of duplicates
+            const existingMessages = document.querySelectorAll('.firebase-message');
+            existingMessages.forEach(msg => msg.remove());
+            
+            // Hide welcome message if we have messages
+            if (!querySnapshot.empty) {
+                groupChatWelcome.style.display = 'none';
+            }
+            
+            const userMessageCount = new Map();
+            
+            querySnapshot.forEach((doc) => {
+                const message = doc.data();
+                const messageId = doc.id;
+                
+                const isCurrentUser = auth.currentUser && auth.currentUser.uid === message.userId;
+                const isAdminMessage = message.isAdmin;
+                const isAdminUser = auth.currentUser && auth.currentUser.email === ADMIN_EMAIL;
+                
+                // Count messages per user
+                if (!userMessageCount.has(message.userId)) {
+                    userMessageCount.set(message.userId, 1);
+                } else {
+                    userMessageCount.set(message.userId, userMessageCount.get(message.userId) + 1);
+                }
+                
+                let messageClass = 'message me firebase-message';
+                let senderName = '';
+                let replyButton = '';
+                
+                if (isCurrentUser) {
+                    messageClass = 'message user firebase-message';
+                    senderName = `<div class="user-badge">💬 You</div>`;
+                } else if (isAdminMessage) {
+                    messageClass = 'message admin firebase-message';
+                    senderName = `<div class="admin-badge">👑 Shaurya (You)</div>`;
+                } else {
+                    senderName = `<div class="user-badge">👤 ${message.userName}</div>`;
+                    
+                    if (adminMode && isAdminUser) {
+                        replyButton = `<button class="reply-btn" data-message-id="${messageId}" data-user-id="${message.userId}" data-user-name="${message.userName}" data-message="${message.message}">
+                            <i class="fas fa-reply"></i> Reply
+                        </button>`;
+                    }
+                }
+                
+                const messageElement = document.createElement('div');
+                messageElement.className = messageClass;
+                messageElement.setAttribute('data-user-id', message.userId);
+                
+                const time = message.timestamp ? message.timestamp.toDate() : new Date();
+                const formattedTime = time.toLocaleTimeString('en-US', {
+                    hour: '2-digit',
+                    minute: '2-digit'
+                });
+                
+                messageElement.innerHTML = `
+                    ${senderName}
+                    <p>${message.message}</p>
+                    <div class="message-footer">
+                        <span class="message-time">${formattedTime}</span>
+                        ${replyButton}
+                    </div>
+                `;
+                
+                chatMessages.appendChild(messageElement);
+            });
+            
+            // Update message counts in user list
+            userMessageCount.forEach((count, userId) => {
+                const countElement = document.getElementById(`count-${userId}`);
+                if (countElement) {
+                    countElement.textContent = count;
+                }
+            });
+            
+            // Add reply button listeners
+            document.querySelectorAll('.reply-btn').forEach(btn => {
+                btn.addEventListener('click', (e) => {
+                    const messageId = e.target.closest('.reply-btn').getAttribute('data-message-id');
+                    const userId = e.target.closest('.reply-btn').getAttribute('data-user-id');
+                    const userName = e.target.closest('.reply-btn').getAttribute('data-user-name');
+                    const messageText = e.target.closest('.reply-btn').getAttribute('data-message');
+                    openReplyModal(messageId, userId, userName, messageText);
+                });
+            });
+            
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+        }, (error) => {
+            console.error('Error loading group messages:', error);
+        });
+}
+
+// Send Message Function
+function sendMessage() {
+    const message = chatInput.value.trim();
+    if (!message) return;
+    
+    const user = auth.currentUser;
+    if (!user) {
+        alert('You need to be logged in to send messages');
+        return;
+    }
+    
+    if (currentChatMode === 'group') {
+        // Send group message
+        const isAdmin = user.email === ADMIN_EMAIL;
+        
+        db.collection('groupMessages').add({
+            userId: user.uid,
+            userName: user.displayName || 'Anonymous',
+            message: message,
+            isAdmin: isAdmin,
+            timestamp: firebase.firestore.FieldValue.serverTimestamp()
+        })
+        .then(() => {
+            chatInput.value = '';
+        })
+        .catch((error) => {
+            console.error('Error sending group message:', error);
+            alert('Error sending message. Please try again.');
+        });
+    } else if (currentChatMode === 'personal' && currentPersonalChatUser) {
+        // Send personal message
+        const chatId = [user.uid, currentPersonalChatUser.uid].sort().join('_');
+        
+        db.collection('personalMessages').add({
+            chatId: chatId,
+            senderId: user.uid,
+            senderName: user.displayName || 'Anonymous',
+            senderEmail: user.email,
+            receiverId: currentPersonalChatUser.uid,
+            message: message,
+            timestamp: firebase.firestore.FieldValue.serverTimestamp()
+        })
+        .then(() => {
+            chatInput.value = '';
+            
+            // Update personal chat document
+            db.collection('personalChats').doc(chatId).set({
+                participants: [user.uid, currentPersonalChatUser.uid],
+                lastMessage: message,
+                lastMessageTime: firebase.firestore.FieldValue.serverTimestamp(),
+                updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+            }, { merge: true });
+        })
+        .catch((error) => {
+            console.error('Error sending personal message:', error);
+            alert('Error sending message. Please try again.');
+        });
+    } else {
+        alert('Please select a user to chat with in personal mode');
+    }
+}
+
+// Submit Story Function
+submitStoryBtn.addEventListener('click', () => {
+    const title = document.getElementById('storyTitle').value;
+    const content = document.getElementById('storyContent').value;
+    const authorName = document.getElementById('authorName').value;
+    
+    if (!title || !content) {
+        alert('Please fill in both title and story content');
+        return;
+    }
+    
+    const user = auth.currentUser;
+    if (!user) {
+        alert('You need to be logged in to submit a story');
+        return;
+    }
+    
+    db.collection('stories').add({
+        title: title,
+        content: content,
+        authorName: authorName,
+        userId: user.uid,
+        createdAt: firebase.firestore.FieldValue.serverTimestamp()
+    })
+    .then(() => {
+        document.getElementById('storyTitle').value = '';
+        document.getElementById('storyContent').value = '';
+        document.getElementById('authorName').value = '';
+        alert('Your story has been submitted to the cosmos!');
+        loadStories();
+    })
+    .catch((error) => {
+        console.error('Error adding story: ', error);
+        alert('Error submitting story. Please try again.');
+    });
+});
+
+// Load Stories
+function loadStories() {
+    const firebaseStories = document.querySelectorAll('.firebase-story');
+    firebaseStories.forEach(story => story.remove());
+    
+    db.collection('stories')
+        .orderBy('createdAt', 'desc')
+        .get()
+        .then((querySnapshot) => {
+            querySnapshot.forEach((doc) => {
+                const story = doc.data();
+                const storyElement = document.createElement('div');
+                storyElement.className = 'diary-entry firebase-story';
+                
+                const date = story.createdAt ? story.createdAt.toDate() : new Date();
+                const formattedDate = date.toLocaleDateString('en-US', {
+                    year: 'numeric',
+                    month: 'long',
+                    day: 'numeric'
+                });
+                
+                storyElement.innerHTML = `
+                    <div class="entry-header">
+                        <span class="entry-date">${formattedDate}</span>
+                        <span class="entry-mood">🌌</span>
+                    </div>
+                    <h3>${story.title}</h3>
+                    <div class="entry-content">
+                        <p>${story.content}</p>
+                    </div>
+                `;
+                
+                storiesContainer.appendChild(storyElement);
+            });
+        })
+        .catch((error) => {
+            console.error('Error loading stories: ', error);
+        });
+}
+
+// Open Reply Modal
+function openReplyModal(messageId, userId, userName, messageText) {
+    selectedMessageForReply = { messageId, userId, userName };
+    userNameDisplay.textContent = `Replying to: ${userName}`;
+    originalMessage.innerHTML = `<strong>Their message:</strong> "${messageText}"`;
+    replyText.value = '';
+    replyText.focus();
+    adminReplyModal.style.display = 'flex';
+}
+
+// Send Reply
+sendReplyBtn.addEventListener('click', () => {
+    const replyMessage = replyText.value.trim();
+    if (!replyMessage) {
+        alert('Please enter a reply message');
+        return;
+    }
+    
+    const user = auth.currentUser;
+    if (!user || user.email !== ADMIN_EMAIL) {
+        alert('You need to be admin to send replies');
+        return;
+    }
+    
+    db.collection('groupMessages').add({
+        userId: user.uid,
+        userName: 'Shaurya',
+        message: replyMessage,
+        isAdmin: true,
+        isReplyTo: selectedMessageForReply.messageId,
+        replyToUserId: selectedMessageForReply.userId,
+        replyToUserName: selectedMessageForReply.userName,
+        timestamp: firebase.firestore.FieldValue.serverTimestamp()
+    })
+    .then(() => {
+        adminReplyModal.style.display = 'none';
+        replyText.value = '';
+        selectedMessageForReply = null;
+    })
+    .catch((error) => {
+        console.error('Error sending reply: ', error);
+        alert('Error sending reply. Please try again.');
+    });
+});
+
+// Event Listeners for Chat
+sendMessageBtn.addEventListener('click', sendMessage);
+chatInput.addEventListener('keypress', (e) => {
+    if (e.key === 'Enter') {
+        sendMessage();
+    }
+});
+
+// Modal Event Listeners
+closeModal.addEventListener('click', () => {
+    adminReplyModal.style.display = 'none';
+});
+
+closeReplyBtn.addEventListener('click', () => {
+    adminReplyModal.style.display = 'none';
+});
+
+window.addEventListener('click', (e) => {
+    if (e.target === adminReplyModal) {
+        adminReplyModal.style.display = 'none';
+    }
+});
+
+// Auth State Listener
+auth.onAuthStateChanged((user) => {
+    if (user) {
+        db.collection('users').doc(user.uid).get()
+            .then((doc) => {
+                if (doc.exists) {
+                    const userData = doc.data();
+                    loginScreen.style.display = 'none';
+                    registerScreen.style.display = 'none';
+                    dashboard.style.display = 'block';
+                    welcomeMessage.textContent = `Welcome to the Cosmos, ${userData.name}!`;
+                    
+                    checkAdminStatus(user);
+                    loadStories();
+                    loadGroupChatMessages();
+                    
+                    // Set user as online
+                    const onlineRef = db.collection('onlineUsers');
+                    const userStatusRef = onlineRef.doc(user.uid);
+                    userStatusRef.set({
+                        uid: user.uid,
+                        email: user.email,
+                        name: user.displayName || 'Anonymous',
+                        lastSeen: firebase.firestore.FieldValue.serverTimestamp(),
+                        isOnline: true
+                    });
+                }
+            });
+    } else {
+        dashboard.style.display = 'none';
+        adminControls.style.display = 'none';
+        userListPanel.style.display = 'none';
+        loginScreen.style.display = 'flex';
+        
+        // Clean up listeners
+        if (groupChatListener) {
+            groupChatListener();
+        }
+        Object.values(personalChatListeners).forEach(unsubscribe => unsubscribe && unsubscribe());
+        personalChatListeners = {};
+    }
+});
+
+// Demo login for testing (remove in production)
+document.addEventListener('DOMContentLoaded', function() {
+    // Auto-fill demo credentials for testing
+    document.getElementById('loginEmail').value = 'test@example.com';
+    document.getElementById('loginPassword').value = 'password123';
+    
+    // You can remove the above two lines in production
+});
     </script>
 </body>
 </html>
