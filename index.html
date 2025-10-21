@@ -2359,8 +2359,9 @@ function sendMessage() {
         alert('Please select a user to chat with in personal mode');
     }
                                    }
-        // Submit Story Function
-submitStoryBtn.addEventListener('click', () => {
+        //edited story part
+        
+                submitStoryBtn.addEventListener('click', () => {
     const title = document.getElementById('storyTitle').value;
     const content = document.getElementById('storyContent').value;
     const authorName = document.getElementById('authorName').value;
@@ -2376,191 +2377,66 @@ submitStoryBtn.addEventListener('click', () => {
         return;
     }
     
-    // Show loading state
-    const submitBtn = document.getElementById('submitStoryBtn');
-    const originalText = submitBtn.innerHTML;
-    submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Submitting...';
-    submitBtn.disabled = true;
-    
     db.collection('stories').add({
         title: title,
         content: content,
         authorName: authorName,
         userId: user.uid,
-        userEmail: user.email,
-        userName: user.displayName || 'Anonymous',
-        createdAt: firebase.firestore.FieldValue.serverTimestamp(),
-        isPublic: true
+        createdAt: firebase.firestore.FieldValue.serverTimestamp()
     })
     .then(() => {
-        // Clear form
         document.getElementById('storyTitle').value = '';
         document.getElementById('storyContent').value = '';
         document.getElementById('authorName').value = '';
-        
-        // Reset button
-        submitBtn.innerHTML = originalText;
-        submitBtn.disabled = false;
-        
-        alert('✨ Your story has been submitted to the cosmos!');
+        alert('Your story has been submitted to the cosmos!');
         loadStories();
     })
     .catch((error) => {
         console.error('Error adding story: ', error);
         alert('Error submitting story. Please try again.');
-        
-        // Reset button
-        submitBtn.innerHTML = originalText;
-        submitBtn.disabled = false;
     });
 });
 
-// Load Stories from Firebase
+// Load Stories
 function loadStories() {
-    const storiesContainer = document.getElementById('storiesContainer');
-    
-    // Clear existing stories but keep the form
-    const existingStories = document.querySelectorAll('.firebase-story, .no-stories-message');
-    existingStories.forEach(story => story.remove());
-    
-    // Show loading state
-    const loadingMsg = document.createElement('div');
-    loadingMsg.className = 'no-stories-message';
-    loadingMsg.innerHTML = `
-        <i class="fas fa-spinner fa-spin" style="font-size: 2rem; margin-bottom: 1rem;"></i>
-        <p>Loading cosmic stories...</p>
-    `;
-    storiesContainer.appendChild(loadingMsg);
+    const firebaseStories = document.querySelectorAll('.firebase-story');
+    firebaseStories.forEach(story => story.remove());
     
     db.collection('stories')
         .orderBy('createdAt', 'desc')
         .get()
         .then((querySnapshot) => {
-            // Remove loading message
-            loadingMsg.remove();
-            
-            if (querySnapshot.empty) {
-                // Show empty state
-                const emptyMsg = document.createElement('div');
-                emptyMsg.className = 'no-stories-message';
-                emptyMsg.innerHTML = `
-                    <i class="fas fa-stars" style="font-size: 3rem; margin-bottom: 1rem; color: var(--accent-1);"></i>
-                    <h3>No Stories Yet</h3>
-                    <p>Be the first to share a cosmic story! Your story will appear here once submitted.</p>
-                `;
-                storiesContainer.appendChild(emptyMsg);
-                return;
-            }
-            
             querySnapshot.forEach((doc) => {
                 const story = doc.data();
-                const storyElement = createStoryElement(story, doc.id);
+                const storyElement = document.createElement('div');
+                storyElement.className = 'diary-entry firebase-story';
+                
+                const date = story.createdAt ? story.createdAt.toDate() : new Date();
+                const formattedDate = date.toLocaleDateString('en-US', {
+                    year: 'numeric',
+                    month: 'long',
+                    day: 'numeric'
+                });
+                
+                storyElement.innerHTML = `
+                    <div class="entry-header">
+                        <span class="entry-date">${formattedDate}</span>
+                        <span class="entry-mood">🌌</span>
+                    </div>
+                    <h3>${story.title}</h3>
+                    <div class="entry-content">
+                        <p>${story.content}</p>
+                    </div>
+                `;
+                
                 storiesContainer.appendChild(storyElement);
             });
         })
         .catch((error) => {
             console.error('Error loading stories: ', error);
-            loadingMsg.innerHTML = `
-                <i class="fas fa-exclamation-triangle" style="font-size: 2rem; margin-bottom: 1rem; color: #ff6b6b;"></i>
-                <h3>Error Loading Stories</h3>
-                <p>Please try refreshing the page.</p>
-            `;
         });
 }
 
-// Create Story Element
-function createStoryElement(story, storyId) {
-    const storyElement = document.createElement('div');
-    storyElement.className = 'diary-entry firebase-story';
-    storyElement.setAttribute('data-story-id', storyId);
-    
-    // Format date
-    const date = story.createdAt ? story.createdAt.toDate() : new Date();
-    const formattedDate = date.toLocaleDateString('en-US', {
-        year: 'numeric',
-        month: 'long',
-        day: 'numeric',
-        hour: '2-digit',
-        minute: '2-digit'
-    });
-    
-    // Check if current user is the author
-    const currentUser = auth.currentUser;
-    const isAuthor = currentUser && currentUser.uid === story.userId;
-    
-    let adminControls = '';
-    if (isAuthor || (currentUser && currentUser.email === ADMIN_EMAIL)) {
-        adminControls = `
-            <div class="story-actions" style="margin-top: 1rem; padding-top: 1rem; border-top: 1px solid var(--card-border);">
-                <button class="delete-story-btn" onclick="deleteStory('${storyId}')" style="background: #ff6b6b; color: white; border: none; padding: 0.5rem 1rem; border-radius: 10px; cursor: pointer; font-size: 0.8rem;">
-                    <i class="fas fa-trash"></i> Delete Story
-                </button>
-            </div>
-        `;
-    }
-    
-    storyElement.innerHTML = `
-        <div class="entry-header">
-            <h3>${story.title}</h3>
-            <span class="entry-date">${formattedDate}</span>
-        </div>
-        <div class="entry-mood">🌌</div>
-        <div class="entry-content">
-            <p>${story.content}</p>
-        </div>
-        ${adminControls}
-    `;
-    
-    return storyElement;
-}
-
-// Delete Story Function
-function deleteStory(storyId) {
-    if (!confirm('Are you sure you want to delete this story? This action cannot be undone.')) {
-        return;
-    }
-    
-    const user = auth.currentUser;
-    if (!user) return;
-    
-    // Get the story first to check ownership
-    db.collection('stories').doc(storyId).get()
-        .then((doc) => {
-            if (doc.exists) {
-                const story = doc.data();
-                const isAuthor = user.uid === story.userId;
-                const isAdmin = user.email === ADMIN_EMAIL;
-                
-                if (isAuthor || isAdmin) {
-                    return db.collection('stories').doc(storyId).delete();
-                } else {
-                    alert('You can only delete your own stories.');
-                    return Promise.reject('Unauthorized');
-                }
-            }
-        })
-        .then(() => {
-            alert('Story deleted successfully!');
-            loadStories(); // Reload the stories
-        })
-        .catch((error) => {
-            console.error('Error deleting story:', error);
-            if (error !== 'Unauthorized') {
-                alert('Error deleting story. Please try again.');
-            }
-        });
-}
-
-// Real-time Stories Listener (Optional - for live updates)
-function startStoriesListener() {
-    db.collection('stories')
-        .orderBy('createdAt', 'desc')
-        .onSnapshot((querySnapshot) => {
-            loadStories(); // Reload stories when changes occur
-        }, (error) => {
-            console.error('Stories listener error:', error);
-        });
-}
 // Open Reply Modal
 function openReplyModal(messageId, userId, userName, messageText) {
     selectedMessageForReply = { messageId, userId, userName };
@@ -2628,6 +2504,9 @@ window.addEventListener('click', (e) => {
         adminReplyModal.style.display = 'none';
     }
 });
+
+
+
         // Auth State Listener
 auth.onAuthStateChanged((user) => {
     if (user) {
