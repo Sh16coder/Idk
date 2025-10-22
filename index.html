@@ -1235,6 +1235,333 @@
             .chat-mode-selector {
                 flex-direction: column;
             }
+            /* Games Section Styles */
+.games-container {
+    display: grid;
+    gap: 2rem;
+    margin-top: 2rem;
+}
+
+.game-card {
+    background: var(--card-bg);
+    border-radius: 25px;
+    padding: 2rem;
+    box-shadow: var(--shadow);
+    backdrop-filter: blur(15px);
+    border: 1px solid var(--card-border);
+    transition: var(--transition);
+}
+
+.game-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 15px 35px rgba(0, 0, 0, 0.5);
+}
+
+.game-header {
+    text-align: center;
+    margin-bottom: 2rem;
+}
+
+.game-header h3 {
+    font-size: 1.8rem;
+    margin-bottom: 1rem;
+    background: var(--gradient);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+}
+
+.game-modes {
+    display: flex;
+    justify-content: center;
+    gap: 1rem;
+    flex-wrap: wrap;
+}
+
+.game-mode-btn {
+    padding: 0.8rem 1.5rem;
+    border: 2px solid var(--accent-1);
+    background: transparent;
+    color: var(--text);
+    border-radius: 15px;
+    cursor: pointer;
+    transition: var(--transition);
+    font-weight: bold;
+}
+
+.game-mode-btn.active,
+.game-mode-btn:hover {
+    background: var(--accent-1);
+    color: white;
+    transform: translateY(-2px);
+}
+
+/* Game Auth Styles */
+.game-auth-section {
+    text-align: center;
+    padding: 2rem;
+}
+
+.game-auth-container {
+    background: rgba(255, 255, 255, 0.05);
+    padding: 2rem;
+    border-radius: 20px;
+    border: 1px solid var(--card-border);
+}
+
+.game-input {
+    width: 100%;
+    max-width: 300px;
+    padding: 1rem;
+    margin: 1rem 0;
+    border: none;
+    border-radius: 15px;
+    background: rgba(255, 255, 255, 0.1);
+    color: var(--text);
+    font-size: 1rem;
+    text-align: center;
+    border: 1px solid transparent;
+}
+
+.game-input:focus {
+    outline: none;
+    border: 1px solid var(--accent-1);
+    box-shadow: 0 0 15px rgba(106, 0, 255, 0.3);
+}
+
+.game-auth-btn {
+    padding: 1rem 2rem;
+    border: none;
+    border-radius: 15px;
+    background: var(--gradient);
+    color: white;
+    font-weight: bold;
+    cursor: pointer;
+    transition: var(--transition);
+    margin-top: 1rem;
+}
+
+.game-auth-btn:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 5px 15px rgba(106, 0, 255, 0.5);
+}
+
+/* Game Controls */
+.game-controls-top {
+    display: flex;
+    justify-content: center;
+    gap: 1rem;
+    margin-bottom: 2rem;
+    flex-wrap: wrap;
+}
+
+.game-control-btn {
+    padding: 0.8rem 1.5rem;
+    border: none;
+    border-radius: 15px;
+    background: rgba(255, 255, 255, 0.1);
+    color: var(--text);
+    cursor: pointer;
+    transition: var(--transition);
+    font-weight: bold;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.game-control-btn:hover {
+    background: var(--accent-1);
+    transform: translateY(-2px);
+}
+
+.game-control-btn.small {
+    padding: 0.5rem 1rem;
+    font-size: 0.8rem;
+}
+
+/* Rooms Section */
+.rooms-section {
+    margin-bottom: 2rem;
+}
+
+.rooms-list {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+    gap: 1rem;
+    margin-top: 1rem;
+}
+
+.room-item {
+    background: rgba(255, 255, 255, 0.05);
+    padding: 1rem;
+    border-radius: 15px;
+    border: 1px solid var(--accent-2);
+    cursor: pointer;
+    transition: var(--transition);
+}
+
+.room-item:hover {
+    background: rgba(0, 212, 255, 0.2);
+    transform: translateY(-2px);
+}
+
+.room-item.full {
+    border-color: var(--accent-3);
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+/* Tic-Tac-Toe Board */
+.game-board-container {
+    margin: 2rem 0;
+}
+
+.players-info {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 2rem;
+    gap: 1rem;
+    flex-wrap: wrap;
+}
+
+.game-player {
+    text-align: center;
+    padding: 1rem;
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 15px;
+    min-width: 120px;
+    transition: var(--transition);
+    border: 2px solid transparent;
+}
+
+.game-player.active {
+    border-color: var(--accent-2);
+    box-shadow: 0 0 15px rgba(0, 212, 255, 0.5);
+}
+
+.player-name {
+    font-weight: bold;
+    margin-bottom: 0.5rem;
+    display: block;
+}
+
+.player-score {
+    font-size: 1.5rem;
+    font-weight: bold;
+    color: var(--accent-2);
+}
+
+.tic-tac-toe-board {
+    display: grid;
+    grid-template-columns: repeat(3, 80px);
+    grid-gap: 10px;
+    margin: 0 auto;
+}
+
+.board-cell {
+    width: 80px;
+    height: 80px;
+    background: rgba(255, 255, 255, 0.1);
+    border: 2px solid var(--accent-1);
+    border-radius: 15px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 2em;
+    cursor: pointer;
+    transition: var(--transition);
+}
+
+.board-cell:hover {
+    background: rgba(106, 0, 255, 0.2);
+    transform: scale(1.05);
+}
+
+.board-cell.taken {
+    cursor: not-allowed;
+}
+
+.board-cell.winning {
+    background: rgba(0, 255, 0, 0.3);
+    box-shadow: 0 0 15px #00ff00;
+}
+
+/* Game Info */
+.game-info {
+    text-align: center;
+    margin-top: 1rem;
+}
+
+.room-info {
+    margin-bottom: 1rem;
+    font-size: 1.1em;
+}
+
+.game-status {
+    padding: 1rem;
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 10px;
+    margin: 1rem 0;
+    border: 1px solid var(--card-border);
+}
+
+/* Leaderboard */
+.game-leaderboard {
+    margin-top: 2rem;
+    text-align: center;
+}
+
+.leaderboard-list {
+    background: rgba(255, 255, 255, 0.05);
+    padding: 1rem;
+    border-radius: 15px;
+    border: 1px solid var(--card-border);
+}
+
+.leaderboard-item {
+    display: flex;
+    justify-content: space-between;
+    padding: 0.8rem;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.leaderboard-item:last-child {
+    border-bottom: none;
+}
+
+.leaderboard-rank {
+    font-weight: bold;
+    color: var(--accent-2);
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    .players-info {
+        flex-direction: column;
+    }
+    
+    .tic-tac-toe-board {
+        grid-template-columns: repeat(3, 60px);
+        gap: 5px;
+    }
+    
+    .board-cell {
+        width: 60px;
+        height: 60px;
+        font-size: 1.5em;
+    }
+    
+    .game-controls-top {
+        flex-direction: column;
+        align-items: center;
+    }
+    
+    .game-control-btn {
+        width: 200px;
+        justify-content: center;
+    }
+}
         }
     </style>
 </head>
@@ -1355,6 +1682,9 @@
             </button>
             <button class="nav-btn" data-section="chat">
                 <i class="fas fa-comments"></i> Chat with Me
+            </button>
+            <button class="nav-btn" data-section="games">
+                <i class="fas fa-gamepad"></i> Space Games
             </button>
         </div>
 
@@ -1537,6 +1867,101 @@
                     </div>
                 </div>
             </section>
+            <!-- Add to nav-container -->
+
+
+<!-- Add this new section after the chat section -->
+<section class="content-section" id="games-section">
+    <h2 class="section-title">🌌 Cosmic Games</h2>
+    
+    <div class="games-container">
+        <!-- Tic-Tac-Toe Game -->
+        <div class="game-card">
+            <div class="game-header">
+                <h3>🚀 Galactic Tic-Tac-Toe 🛸</h3>
+                <div class="game-modes">
+                    <button class="game-mode-btn active" data-mode="single">Single Player</button>
+                    <button class="game-mode-btn" data-mode="multiplayer">Multiplayer</button>
+                </div>
+            </div>
+
+            <!-- Auth Section for Multiplayer -->
+            <div class="game-auth-section" id="gameAuthSection">
+                <div class="game-auth-container">
+                    <h4>Join the Galactic Battle!</h4>
+                    <input type="text" id="gamePlayerName" class="game-input" 
+                           placeholder="Enter your cosmic name" maxlength="15">
+                    <button class="game-auth-btn" id="gamePlayAsGuest">
+                        <i class="fas fa-rocket"></i> Play as Space Explorer
+                    </button>
+                </div>
+            </div>
+
+            <!-- Game Section -->
+            <div class="game-section" id="gameSection" style="display: none;">
+                <div class="game-controls-top">
+                    <button class="game-control-btn" id="createGameBtn">
+                        <i class="fas fa-plus"></i> Create Room
+                    </button>
+                    <button class="game-control-btn" id="joinRandomBtn">
+                        <i class="fas fa-random"></i> Join Random
+                    </button>
+                    <button class="game-control-btn" id="leaveGameBtn">
+                        <i class="fas fa-sign-out-alt"></i> Leave
+                    </button>
+                </div>
+
+                <!-- Rooms List -->
+                <div class="rooms-section" id="roomsSection">
+                    <h4>🛰️ Active Game Rooms</h4>
+                    <div class="rooms-list" id="roomsList"></div>
+                </div>
+
+                <!-- Game Board -->
+                <div class="game-board-container" id="gameBoardContainer" style="display: none;">
+                    <div class="players-info">
+                        <div class="game-player player1" id="player1Info">
+                            <span class="player-name">🚀 Waiting...</span>
+                            <div class="player-score">0</div>
+                        </div>
+                        
+                        <div class="tic-tac-toe-board" id="ticTacToeBoard">
+                            <!-- 3x3 grid will be generated by JavaScript -->
+                        </div>
+
+                        <div class="game-player player2" id="player2Info">
+                            <span class="player-name">🛸 Waiting...</span>
+                            <div class="player-score">0</div>
+                        </div>
+                    </div>
+
+                    <div class="game-info">
+                        <div class="room-info">
+                            Room: <span id="roomCode">-</span>
+                            <button class="game-control-btn small" id="copyRoomCode">
+                                <i class="fas fa-copy"></i> Copy
+                            </button>
+                        </div>
+                        <div class="game-status" id="gameStatus">
+                            Ready for space battle!
+                        </div>
+                        <button class="game-control-btn" id="rematchBtn">
+                            <i class="fas fa-redo"></i> Rematch
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Leaderboard -->
+                <div class="game-leaderboard">
+                    <h4>🏆 Galactic Leaderboard</h4>
+                    <div class="leaderboard-list" id="leaderboardList">
+                        Loading stellar rankings...
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
         </div>
 
         <!-- Footer -->
@@ -2630,7 +3055,656 @@ function completePersonalChatStart(userId, userName) {
                 personalChatListeners = {};
             }
         });
+// Tic-Tac-Toe Game Class
+class SpaceTicTacToe {
+    constructor() {
+        this.currentPlayer = null;
+        this.currentGame = null;
+        this.gameRoom = null;
+        this.playerSymbol = null;
+        this.isMyTurn = false;
+        this.gameActive = false;
+        this.currentMode = 'single'; // 'single' or 'multiplayer'
+        
+        this.initializeGameEventListeners();
+        this.setupBoard();
+    }
 
+    initializeGameEventListeners() {
+        // Game mode events
+        document.querySelectorAll('.game-mode-btn').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                const mode = e.target.getAttribute('data-mode');
+                this.switchGameMode(mode);
+            });
+        });
+
+        // Auth events
+        document.getElementById('gamePlayAsGuest').addEventListener('click', () => this.signInAsGuest());
+
+        // Game control events
+        document.getElementById('createGameBtn').addEventListener('click', () => this.createGameRoom());
+        document.getElementById('joinRandomBtn').addEventListener('click', () => this.joinRandomGame());
+        document.getElementById('leaveGameBtn').addEventListener('click', () => this.leaveGame());
+        document.getElementById('rematchBtn').addEventListener('click', () => this.requestRematch());
+        document.getElementById('copyRoomCode').addEventListener('click', () => this.copyRoomCode());
+
+        // Load leaderboard
+        this.loadLeaderboard();
+        
+        // Listen for game rooms if in multiplayer mode
+        if (this.currentMode === 'multiplayer') {
+            this.listenForGameRooms();
+        }
+    }
+
+    switchGameMode(mode) {
+        this.currentMode = mode;
+        
+        // Update active button
+        document.querySelectorAll('.game-mode-btn').forEach(btn => {
+            btn.classList.remove('active');
+            if (btn.getAttribute('data-mode') === mode) {
+                btn.classList.add('active');
+            }
+        });
+
+        if (mode === 'single') {
+            this.leaveGame();
+            this.startSinglePlayer();
+        } else {
+            // Show auth section for multiplayer
+            this.showGameAuthSection();
+        }
+    }
+
+    showGameAuthSection() {
+        document.getElementById('gameAuthSection').style.display = 'block';
+        document.getElementById('gameSection').style.display = 'none';
+        document.getElementById('gameBoardContainer').style.display = 'none';
+    }
+
+    showGameSection() {
+        document.getElementById('gameAuthSection').style.display = 'none';
+        document.getElementById('gameSection').style.display = 'block';
+    }
+
+    showGameBoard() {
+        document.getElementById('roomsSection').style.display = 'none';
+        document.getElementById('gameBoardContainer').style.display = 'block';
+    }
+
+    // Auth Methods
+    async signInAsGuest() {
+        const playerName = document.getElementById('gamePlayerName').value.trim();
+        if (!playerName) {
+            alert('Please enter your cosmic name!');
+            return;
+        }
+
+        try {
+            this.currentPlayer = {
+                uid: 'guest_' + Date.now(),
+                displayName: playerName,
+                isGuest: true
+            };
+            this.showGameSection();
+            this.listenForGameRooms();
+        } catch (error) {
+            console.error('Auth error:', error);
+            alert('Failed to join space battle!');
+        }
+    }
+
+    // Single Player Mode - FIXED
+    startSinglePlayer() {
+        this.showGameSection();
+        document.getElementById('roomsSection').style.display = 'none';
+        document.getElementById('gameBoardContainer').style.display = 'block';
+        
+        // Reset board
+        this.setupBoard();
+        
+        // Set up single player game state
+        this.currentPlayer = {
+            uid: 'single_player',
+            displayName: 'You',
+            isGuest: true
+        };
+        
+        this.playerSymbol = '🚀';
+        this.gameActive = true;
+        this.isMyTurn = true;
+        
+        // Update UI for single player
+        document.getElementById('player1Info').innerHTML = `
+            <span class="player-name">🚀 You</span>
+            <div class="player-score">0</div>
+        `;
+        
+        document.getElementById('player2Info').innerHTML = `
+            <span class="player-name">🛸 Cosmic AI</span>
+            <div class="player-score">0</div>
+        `;
+        
+        document.getElementById('roomCode').textContent = 'SINGLE_PLAYER';
+        document.getElementById('gameStatus').textContent = 'Your turn to conquer space!';
+        
+        // Reset scores
+        this.player1Score = 0;
+        this.player2Score = 0;
+        
+        // Highlight active player
+        document.querySelectorAll('.game-player').forEach(player => player.classList.remove('active'));
+        document.getElementById('player1Info').classList.add('active');
+    }
+
+    // Multiplayer Methods
+    async createGameRoom() {
+        if (!this.currentPlayer) {
+            alert('Please enter your name first!');
+            return;
+        }
+
+        const roomCode = this.generateRoomCode();
+        const gameRoom = {
+            roomCode: roomCode,
+            player1: {
+                uid: this.currentPlayer.uid,
+                name: this.currentPlayer.displayName,
+                symbol: '🚀',
+                score: 0
+            },
+            player2: null,
+            board: Array(9).fill(''),
+            currentTurn: '🚀',
+            status: 'waiting',
+            winner: null,
+            createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+            lastMoveAt: firebase.firestore.FieldValue.serverTimestamp()
+        };
+
+        try {
+            await db.collection('tictactoeRooms').doc(roomCode).set(gameRoom);
+            this.joinGameRoom(roomCode, '🚀');
+        } catch (error) {
+            console.error('Error creating game room:', error);
+            alert('Error creating game room. Please try again.');
+        }
+    }
+
+    async joinRandomGame() {
+        if (!this.currentPlayer) {
+            alert('Please enter your name first!');
+            return;
+        }
+
+        try {
+            const availableRooms = await db.collection('tictactoeRooms')
+                .where('status', '==', 'waiting')
+                .orderBy('createdAt')
+                .limit(10)
+                .get();
+
+            if (availableRooms.empty) {
+                // No rooms available, create one
+                this.createGameRoom();
+                return;
+            }
+
+            const room = availableRooms.docs[0];
+            this.joinGameRoom(room.id, '🛸');
+        } catch (error) {
+            console.error('Error joining random game:', error);
+            alert('Error finding a game. Please try again.');
+        }
+    }
+
+    async joinGameRoom(roomCode, symbol) {
+        try {
+            this.gameRoom = db.collection('tictactoeRooms').doc(roomCode);
+            this.playerSymbol = symbol;
+
+            if (symbol === '🛸') {
+                await this.gameRoom.update({
+                    player2: {
+                        uid: this.currentPlayer.uid,
+                        name: this.currentPlayer.displayName,
+                        symbol: '🛸',
+                        score: 0
+                    },
+                    status: 'active'
+                });
+            }
+
+            this.setupGameListeners();
+            this.showGameBoard();
+        } catch (error) {
+            console.error('Error joining game room:', error);
+            alert('Error joining game room. Please try again.');
+        }
+    }
+
+    // Game Logic
+    async makeMove(cellIndex) {
+        if (!this.gameActive || !this.isMyTurn) return;
+
+        if (this.currentMode === 'single') {
+            this.makeSinglePlayerMove(cellIndex);
+        } else {
+            this.makeMultiplayerMove(cellIndex);
+        }
+    }
+
+    async makeMultiplayerMove(cellIndex) {
+        const gameDoc = await this.gameRoom.get();
+        const gameData = gameDoc.data();
+
+        if (gameData.board[cellIndex] !== '') return;
+
+        const newBoard = [...gameData.board];
+        newBoard[cellIndex] = this.playerSymbol;
+
+        const winner = this.checkWinner(newBoard);
+        const isDraw = !winner && newBoard.every(cell => cell !== '');
+
+        const updateData = {
+            board: newBoard,
+            currentTurn: this.playerSymbol === '🚀' ? '🛸' : '🚀',
+            lastMoveAt: firebase.firestore.FieldValue.serverTimestamp()
+        };
+
+        if (winner || isDraw) {
+            updateData.status = 'finished';
+            updateData.winner = winner || 'draw';
+            
+            // Update scores
+            if (winner) {
+                if (winner === '🚀') {
+                    updateData.player1 = {
+                        ...gameData.player1,
+                        score: (gameData.player1.score || 0) + 1
+                    };
+                } else {
+                    updateData.player2 = {
+                        ...gameData.player2,
+                        score: (gameData.player2.score || 0) + 1
+                    };
+                }
+                
+                // Update leaderboard for multiplayer games
+                if (winner === this.playerSymbol) {
+                    this.updateLeaderboard(this.currentPlayer.displayName);
+                }
+            }
+        }
+
+        await this.gameRoom.update(updateData);
+    }
+
+    makeSinglePlayerMove(cellIndex) {
+        const board = Array.from(document.querySelectorAll('.board-cell'))
+            .map(cell => cell.textContent);
+            
+        if (board[cellIndex] !== '') return;
+
+        // Player's move
+        board[cellIndex] = '🚀';
+        this.updateBoardUI(board);
+        
+        const winner = this.checkWinner(board);
+        if (winner) {
+            this.handleGameEnd(winner);
+            return;
+        }
+        
+        if (board.every(cell => cell !== '')) {
+            this.handleGameEnd('draw');
+            return;
+        }
+
+        // AI's move
+        setTimeout(() => {
+            const aiMove = this.getAIMove(board);
+            if (aiMove !== -1) {
+                board[aiMove] = '🛸';
+                this.updateBoardUI(board);
+                
+                const aiWinner = this.checkWinner(board);
+                if (aiWinner) {
+                    this.handleGameEnd(aiWinner);
+                } else if (board.every(cell => cell !== '')) {
+                    this.handleGameEnd('draw');
+                } else {
+                    this.isMyTurn = true;
+                    document.getElementById('gameStatus').textContent = 'Your turn to conquer space!';
+                    document.getElementById('player1Info').classList.add('active');
+                    document.getElementById('player2Info').classList.remove('active');
+                }
+            }
+        }, 1000);
+    }
+
+    getAIMove(board) {
+        // Simple AI: try to win, then block, then random
+        const lines = [
+            [0, 1, 2], [3, 4, 5], [6, 7, 8], // rows
+            [0, 3, 6], [1, 4, 7], [2, 5, 8], // columns
+            [0, 4, 8], [2, 4, 6] // diagonals
+        ];
+
+        // Try to win
+        for (const line of lines) {
+            const [a, b, c] = line;
+            if (board[a] === '🛸' && board[b] === '🛸' && board[c] === '') return c;
+            if (board[a] === '🛸' && board[c] === '🛸' && board[b] === '') return b;
+            if (board[b] === '🛸' && board[c] === '🛸' && board[a] === '') return a;
+        }
+
+        // Block player
+        for (const line of lines) {
+            const [a, b, c] = line;
+            if (board[a] === '🚀' && board[b] === '🚀' && board[c] === '') return c;
+            if (board[a] === '🚀' && board[c] === '🚀' && board[b] === '') return b;
+            if (board[b] === '🚀' && board[c] === '🚀' && board[a] === '') return a;
+        }
+
+        // Take center if available
+        if (board[4] === '') return 4;
+
+        // Take corners
+        const corners = [0, 2, 6, 8];
+        const availableCorners = corners.filter(index => board[index] === '');
+        if (availableCorners.length > 0) {
+            return availableCorners[Math.floor(Math.random() * availableCorners.length)];
+        }
+
+        // Take any available spot
+        const availableSpots = board.map((cell, index) => cell === '' ? index : -1).filter(index => index !== -1);
+        return availableSpots.length > 0 ? availableSpots[Math.floor(Math.random() * availableSpots.length)] : -1;
+    }
+
+    handleGameEnd(winner) {
+        this.gameActive = false;
+        
+        if (winner === '🚀') {
+            this.player1Score = (this.player1Score || 0) + 1;
+            document.getElementById('player1Info').querySelector('.player-score').textContent = this.player1Score;
+            document.getElementById('gameStatus').textContent = '🎉 You win this space battle!';
+            this.updateLeaderboard(this.currentPlayer.displayName);
+        } else if (winner === '🛸') {
+            this.player2Score = (this.player2Score || 0) + 1;
+            document.getElementById('player2Info').querySelector('.player-score').textContent = this.player2Score;
+            document.getElementById('gameStatus').textContent = '🤖 Cosmic AI wins!';
+        } else {
+            document.getElementById('gameStatus').textContent = '🤝 Cosmic Stalemate! It\'s a draw!';
+        }
+    }
+
+    checkWinner(board) {
+        const winPatterns = [
+            [0, 1, 2], [3, 4, 5], [6, 7, 8], // rows
+            [0, 3, 6], [1, 4, 7], [2, 5, 8], // columns
+            [0, 4, 8], [2, 4, 6] // diagonals
+        ];
+
+        for (const pattern of winPatterns) {
+            const [a, b, c] = pattern;
+            if (board[a] && board[a] === board[b] && board[a] === board[c]) {
+                return board[a];
+            }
+        }
+        return null;
+    }
+
+    // UI Methods
+    setupBoard() {
+        const board = document.getElementById('ticTacToeBoard');
+        board.innerHTML = '';
+        
+        for (let i = 0; i < 9; i++) {
+            const cell = document.createElement('div');
+            cell.className = 'board-cell';
+            cell.dataset.index = i;
+            cell.addEventListener('click', () => this.makeMove(i));
+            board.appendChild(cell);
+        }
+    }
+
+    updateBoardUI(board) {
+        const cells = document.querySelectorAll('.board-cell');
+        cells.forEach((cell, index) => {
+            cell.textContent = board[index] || '';
+            cell.classList.toggle('taken', board[index] !== '');
+        });
+    }
+
+    // Real-time Game Listeners for Multiplayer
+    setupGameListeners() {
+        this.gameRoom.onSnapshot((doc) => {
+            if (doc.exists) {
+                const gameData = doc.data();
+                this.updateGameUI(gameData);
+                
+                if (gameData.status === 'finished' && !gameData.rematchRequested) {
+                    if (gameData.winner === this.playerSymbol) {
+                        this.updateLeaderboard(this.currentPlayer.displayName);
+                    }
+                }
+            }
+        });
+    }
+
+    updateGameUI(gameData) {
+        // Update player info
+        this.updatePlayerInfo(gameData);
+        
+        // Update board
+        this.updateBoardUI(gameData.board);
+        
+        // Update game status
+        this.updateGameStatus(gameData);
+        
+        // Check if it's my turn
+        this.isMyTurn = gameData.currentTurn === this.playerSymbol;
+        this.gameActive = gameData.status === 'active';
+    }
+
+    updatePlayerInfo(gameData) {
+        document.getElementById('player1Info').innerHTML = `
+            <span class="player-name">🚀 ${gameData.player1?.name || 'Waiting...'}</span>
+            <div class="player-score">${gameData.player1?.score || 0}</div>
+        `;
+
+        document.getElementById('player2Info').innerHTML = `
+            <span class="player-name">🛸 ${gameData.player2?.name || 'Waiting...'}</span>
+            <div class="player-score">${gameData.player2?.score || 0}</div>
+        `;
+
+        document.getElementById('roomCode').textContent = this.gameRoom.id;
+        
+        // Highlight active player
+        document.querySelectorAll('.game-player').forEach(player => player.classList.remove('active'));
+        if (gameData.currentTurn === '🚀') {
+            document.getElementById('player1Info').classList.add('active');
+        } else {
+            document.getElementById('player2Info').classList.add('active');
+        }
+    }
+
+    updateGameStatus(gameData) {
+        const statusElement = document.getElementById('gameStatus');
+        
+        if (gameData.status === 'waiting') {
+            statusElement.textContent = '⏳ Waiting for opponent to join...';
+        } else if (gameData.status === 'finished') {
+            if (gameData.winner === 'draw') {
+                statusElement.textContent = '🤝 Cosmic Stalemate! It\'s a draw!';
+            } else {
+                statusElement.textContent = `🎉 ${gameData.winner} wins this space battle!`;
+            }
+        } else {
+            statusElement.textContent = `🌠 ${gameData.currentTurn}'s turn to conquer space!`;
+        }
+    }
+
+    // Room Management
+    listenForGameRooms() {
+        db.collection('tictactoeRooms')
+            .where('status', 'in', ['waiting', 'active'])
+            .orderBy('lastMoveAt', 'desc')
+            .limit(20)
+            .onSnapshot((snapshot) => {
+                this.updateRoomsList(snapshot.docs);
+            });
+    }
+
+    updateRoomsList(rooms) {
+        const roomsList = document.getElementById('roomsList');
+        roomsList.innerHTML = '';
+
+        if (rooms.length === 0) {
+            roomsList.innerHTML = '<div style="text-align: center; color: var(--text-secondary); padding: 1rem;">No active game rooms</div>';
+            return;
+        }
+
+        rooms.forEach(doc => {
+            const room = doc.data();
+            const roomElement = document.createElement('div');
+            roomElement.className = `room-item ${room.player2 ? 'full' : ''}`;
+            roomElement.innerHTML = `
+                <strong>Room: ${doc.id}</strong><br>
+                Players: ${room.player1.name} ${room.player2 ? '+ ' + room.player2.name : ''}<br>
+                Status: ${room.status}
+            `;
+            
+            if (!room.player2) {
+                roomElement.addEventListener('click', () => this.joinGameRoom(doc.id, '🛸'));
+            }
+            
+            roomsList.appendChild(roomElement);
+        });
+    }
+
+    // Utility Methods
+    generateRoomCode() {
+        return Math.random().toString(36).substring(2, 8).toUpperCase();
+    }
+
+    async copyRoomCode() {
+        if (this.gameRoom) {
+            const inviteLink = `${window.location.origin}${window.location.pathname}?room=${this.gameRoom.id}`;
+            await navigator.clipboard.writeText(inviteLink);
+            alert('Invite link copied! Share it with your friend across the galaxy!');
+        }
+    }
+
+    async leaveGame() {
+        if (this.gameRoom) {
+            try {
+                await this.gameRoom.delete();
+            } catch (error) {
+                console.error('Error deleting game room:', error);
+            }
+            this.gameRoom = null;
+        }
+        
+        document.getElementById('roomsSection').style.display = 'block';
+        document.getElementById('gameBoardContainer').style.display = 'none';
+        this.gameActive = false;
+        
+        // Reset to default state
+        if (this.currentMode === 'multiplayer') {
+            this.showGameSection();
+        }
+    }
+
+    async requestRematch() {
+        if (this.currentMode === 'single') {
+            this.startSinglePlayer();
+        } else if (this.gameRoom) {
+            await this.gameRoom.update({
+                board: Array(9).fill(''),
+                status: 'active',
+                winner: null,
+                currentTurn: '🚀',
+                rematchRequested: true
+            });
+        }
+    }
+
+    // Leaderboard
+    async loadLeaderboard() {
+        try {
+            const leaderboardSnapshot = await db.collection('tictactoeLeaderboard')
+                .orderBy('wins', 'desc')
+                .limit(10)
+                .get();
+
+            const leaderboardElement = document.getElementById('leaderboardList');
+            leaderboardElement.innerHTML = '';
+
+            if (leaderboardSnapshot.empty) {
+                leaderboardElement.innerHTML = '<div style="text-align: center; color: var(--text-secondary); padding: 1rem;">No rankings yet</div>';
+                return;
+            }
+            leaderboardSnapshot.forEach((doc, index) => {
+                const player = doc.data();
+                const item = document.createElement('div');
+                item.className = 'leaderboard-item';
+                item.innerHTML = `
+                    <span class="leaderboard-rank">#${index + 1}</span>
+                    <span class="leaderboard-name">${player.name}</span>
+                    <span class="leaderboard-wins">${player.wins} wins</span>
+                `;
+                leaderboardElement.appendChild(item);
+            });
+        } catch (error) {
+            console.error('Error loading leaderboard:', error);
+            document.getElementById('leaderboardList').innerHTML = '<div style="text-align: center; color: #ff6b6b; padding: 1rem;">Error loading leaderboard</div>';
+        }
+    }
+
+    async updateLeaderboard(playerName) {
+        try {
+            const playerRef = db.collection('tictactoeLeaderboard').doc(this.currentPlayer.uid);
+            const playerDoc = await playerRef.get();
+            if (playerDoc.exists) {
+                await playerRef.update({
+                    wins: firebase.firestore.FieldValue.increment(1),
+                    lastWin: firebase.firestore.FieldValue.serverTimestamp()
+                });
+            } else {
+                await playerRef.set({
+                    name: playerName,
+                    wins: 1,
+                    lastWin: firebase.firestore.FieldValue.serverTimestamp()
+                });
+            }
+            
+            this.loadLeaderboard(); // Refresh leaderboard
+        } catch (error) {
+            console.error('Error updating leaderboard:', error);
+        }
+    }
+}
+
+// Initialize the game when the games section is activated
+document.addEventListener('DOMContentLoaded', function() {
+    let ticTacToeGame = null;
+        // Listen for navigation to games section
+    document.querySelectorAll('.nav-btn').forEach(btn => {
+        btn.addEventListener('click', function() {
+            const targetSection = this.getAttribute('data-section');
+            if (targetSection === 'games' && !ticTacToeGame) {
+                // Initialize the game when games section is first accessed
+                setTimeout(() => {
+                    ticTacToeGame = new SpaceTicTacToe();
+                }, 100);
+            }
+        });
+    });
+});
         // Demo login for testing
         document.addEventListener('DOMContentLoaded', function() {
             document.getElementById('loginEmail').value = 'test@example.com';
