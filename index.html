@@ -1914,343 +1914,103 @@ const firebaseConfig = {
                     userList.innerHTML = '<div style="text-align: center; color: #ff6b6b; padding: 1rem;">Error loading users</div>';
                 });
         }
+// Pusher Configuration
+const PUSHER_APP_KEY = "your-pusher-app-key"; // Replace with your Pusher app key
+const PUSHER_CLUSTER = "your-pusher-cluster"; // Replace with your Pusher cluster
 
-        // Load Personal Chat Users
-        function loadPersonalChatUsers() {
-            const user = auth.currentUser;
-            if (!user) return;
+// Initialize Pusher
+let pusher = null;
+let personalChannel = null;
+let personalChatListeners = {};
 
-            userList.innerHTML = '<div style="text-align: center; color: var(--text-secondary); padding: 1rem;">Loading users...</div>';
+// Personal Chat State
+let currentPersonalChatUser = null;
 
-            db.collection('onlineUsers')
-                .where('isOnline', '==', true)
-                .onSnapshot((snapshot) => {
-                    userList.innerHTML = '';
-                    
-                    if (snapshot.empty) {
-                        userList.innerHTML = '<div style="text-align: center; color: var(--text-secondary); padding: 1rem;">No users online</div>';
-                        return;
-                    }
-
-                    let hasUsers = false;
-
-                    snapshot.forEach((doc) => {
-                        const userData = doc.data();
-                        
-                        if (userData.uid !== auth.currentUser.uid) {
-                            hasUsers = true;
-                            
-                            const userItem = document.createElement('div');
-                            userItem.className = 'user-item';
-                            userItem.setAttribute('data-user-id', userData.uid);
-                            
-                            if (currentPersonalChatUser && currentPersonalChatUser.uid === userData.uid) {
-                                userItem.classList.add('active');
-                            }
-                            
-                            userItem.innerHTML = `
-                                <div class="user-item-name">
-                                    <i class="fas fa-user"></i>
-                                    ${userData.name}
-                                    <span class="message-count" id="count-${userData.uid}">0</span>
-                                    <span class="unread-badge" id="unread-${userData.uid}" style="display: none;">0</span>
-                                </div>
-                                <div class="user-item-actions">
-                                    <button class="user-chat-btn start-personal-chat" data-user-id="${userData.uid}" data-user-name="${userData.name}">
-                                        <i class="fas fa-comment"></i> Chat
-                                    </button>
-                                </div>
-                            `;
-                            userList.appendChild(userItem);
-                        }
-                    });
-
-                    if (!hasUsers) {
-                        userList.innerHTML = '<div style="text-align: center; color: var(--text-secondary); padding: 1rem;">No other users online</div>';
-                    }
-
-                    document.querySelectorAll('.start-personal-chat').forEach(btn => {
-                        btn.addEventListener('click', (e) => {
-                            const userId = e.target.closest('.start-personal-chat').getAttribute('data-user-id');
-                            const userName = e.target.closest('.start-personal-chat').getAttribute('data-user-name');
-                            startPersonalChat(userId, userName);
-                        });
-                    });
-                }, (error) => {
-                    console.error('Error loading users:', error);
-                    userList.innerHTML = '<div style="text-align: center; color: #ff6b6b; padding: 1rem;">Error loading users</div>';
-                });
-        }
-
-        // Start Personal Chat
-        function startPersonalChat(userId, userName) {
-            if (currentChatMode !== 'personal') {
-                const personalChatBtn = document.querySelector('[data-mode="personal"]');
-                if (personalChatBtn) {
-                    personalChatBtn.click();
-                }
-                setTimeout(() => {
-                    completePersonalChatStart(userId, userName);
-                }, 100);
-            } else {
-                completePersonalChatStart(userId, userName);
+// Initialize Pusher when user logs in
+function initializePusher(userId) {
+    pusher = new Pusher(PUSHER_APP_KEY, {
+        cluster: PUSHER_CLUSTER,
+        authEndpoint: '/pusher/auth', // We'll handle this later
+        auth: {
+            params: {
+                user_id: userId
             }
         }
+    });
+}
 
-        function completePersonalChatStart(userId, userName) {
-            currentPersonalChatUser = { uid: userId, name: userName };
-            personalChatName.textContent = userName;
-            personalChatStatus.textContent = 'Online - Personal Chat';
-            personalChatAvatar.textContent = userName.charAt(0).toUpperCase();
-            personalChatWelcome.style.display = 'none';
-            groupChatWelcome.style.display = 'none';
-            
-            document.querySelectorAll('.user-item').forEach(item => {
-                item.classList.remove('active');
-                if (item.getAttribute('data-user-id') === userId) {
-                    item.classList.add('active');
-                }
-            });
-            
-            const existingMessages = document.querySelectorAll('.firebase-message');
-            existingMessages.forEach(msg => msg.remove());
-            
-            loadPersonalChatMessages(userId);
-        }
-
-        // Load Personal Chat Messages
-            // Load Personal Chat Messages - FIXED VERSION
-function loadPersonalChatMessages(otherUserId) {
+// Load Personal Chat Users
+function loadPersonalChatUsers() {
     const user = auth.currentUser;
     if (!user) return;
-    
-    // Unsubscribe from previous personal chat
-    if (personalChatListeners[otherUserId]) {
-        personalChatListeners[otherUserId]();
-    }
-    
-    // Generate chat ID for the two users
-    const chatId = [user.uid, otherUserId].sort().join('_');
-    
-    // Show loading message
-    const loadingMsg = document.createElement('div');
-    loadingMsg.className = 'no-chat-selected';
-    loadingMsg.innerHTML = `
-        <i class="fas fa-spinner fa-spin"></i>
-        <h3>Loading conversation...</h3>
-    `;
-    chatMessages.appendChild(loadingMsg);
-    
-    console.log('Loading personal chat with ID:', chatId); // Debug log
-    
-    // Listen for personal messages - FIXED QUERY
-    const unsubscribe = db.collection('personalMessages')
-        .where('chatId', '==', chatId)
-        .orderBy('timestamp', 'asc')
-        .onSnapshot((querySnapshot) => {
-            // Remove loading message
-            const loadingMsg = document.querySelector('.no-chat-selected');
-            if (loadingMsg) loadingMsg.remove();
+
+    userList.innerHTML = '<div style="text-align: center; color: var(--text-secondary); padding: 1rem;">Loading users...</div>';
+
+    // Get all online users from Firebase
+    db.collection('onlineUsers')
+        .where('isOnline', '==', true)
+        .onSnapshot((snapshot) => {
+            userList.innerHTML = '';
             
-            // Clear existing messages
-            const existingMessages = document.querySelectorAll('.firebase-message');
-            existingMessages.forEach(msg => msg.remove());
-            
-            console.log('Personal messages snapshot:', querySnapshot.size, 'messages'); // Debug log
-            
-            if (querySnapshot.empty) {
-                // No messages yet - show empty state
-                const emptyMsg = document.createElement('div');
-                emptyMsg.className = 'no-chat-selected';
-                emptyMsg.innerHTML = `
-                    <i class="fas fa-comments"></i>
-                    <h3>Start a conversation</h3>
-                    <p>Send a message to begin your private chat with ${currentPersonalChatUser.name}</p>
-                `;
-                chatMessages.appendChild(emptyMsg);
-            } else {
-                querySnapshot.forEach((doc) => {
-                    const message = doc.data();
-                    console.log('Personal message:', message); // Debug log
-                    displayPersonalMessage(message);
-                });
+            if (snapshot.empty) {
+                userList.innerHTML = '<div style="text-align: center; color: var(--text-secondary); padding: 1rem;">No users online</div>';
+                return;
             }
-            
-            chatMessages.scrollTop = chatMessages.scrollHeight;
+
+            let hasUsers = false;
+
+            snapshot.forEach((doc) => {
+                const userData = doc.data();
+                
+                // Don't show current user in the list
+                if (userData.uid !== auth.currentUser.uid) {
+                    hasUsers = true;
+                    
+                    const userItem = document.createElement('div');
+                    userItem.className = 'user-item';
+                    userItem.setAttribute('data-user-id', userData.uid);
+                    
+                    // Check if this is the currently selected user
+                    if (currentPersonalChatUser && currentPersonalChatUser.uid === userData.uid) {
+                        userItem.classList.add('active');
+                    }
+                    
+                    userItem.innerHTML = `
+                        <div class="user-item-name">
+                            <i class="fas fa-user"></i>
+                            ${userData.name}
+                            <span class="unread-badge" id="unread-${userData.uid}" style="display: none;">0</span>
+                        </div>
+                        <div class="user-item-actions">
+                            <button class="user-chat-btn start-personal-chat" data-user-id="${userData.uid}" data-user-name="${userData.name}">
+                                <i class="fas fa-comment"></i> Chat
+                            </button>
+                        </div>
+                    `;
+                    userList.appendChild(userItem);
+                }
+            });
+
+            if (!hasUsers) {
+                userList.innerHTML = '<div style="text-align: center; color: var(--text-secondary); padding: 1rem;">No other users online</div>';
+            }
+
+            // Add event listeners to chat buttons
+            document.querySelectorAll('.start-personal-chat').forEach(btn => {
+                btn.addEventListener('click', (e) => {
+                    const userId = e.target.closest('.start-personal-chat').getAttribute('data-user-id');
+                    const userName = e.target.closest('.start-personal-chat').getAttribute('data-user-name');
+                    startPersonalChat(userId, userName);
+                });
+            });
         }, (error) => {
-            console.error('Error loading personal messages:', error);
-            const loadingMsg = document.querySelector('.no-chat-selected');
-            if (loadingMsg) loadingMsg.remove();
-            
-            const errorMsg = document.createElement('div');
-            errorMsg.className = 'no-chat-selected';
-            errorMsg.innerHTML = `
-                <i class="fas fa-exclamation-triangle"></i>
-                <h3>Error loading messages</h3>
-                <p>Please try again</p>
-            `;
-            chatMessages.appendChild(errorMsg);
+            console.error('Error loading users:', error);
+            userList.innerHTML = '<div style="text-align: center; color: #ff6b6b; padding: 1rem;">Error loading users</div>';
         });
-    
-    personalChatListeners[otherUserId] = unsubscribe;
-    
-    // Create/update personal chat document
-    db.collection('personalChats').doc(chatId).set({
-        participants: [user.uid, otherUserId],
-        lastMessage: '',
-        lastMessageTime: firebase.firestore.FieldValue.serverTimestamp(),
-        updatedAt: firebase.firestore.FieldValue.serverTimestamp()
-    }, { merge: true }).catch(error => {
-        console.error('Error creating personal chat:', error);
-    });
 }
 
-// Display Personal Message - FIXED VERSION
-function displayPersonalMessage(message) {
-    const messageElement = document.createElement('div');
-    
-    const isCurrentUser = auth.currentUser && auth.currentUser.uid === message.senderId;
-    const isAdminMessage = message.senderEmail === ADMIN_EMAIL;
-    
-    console.log('Displaying message:', { // Debug log
-        message: message.message,
-        senderId: message.senderId,
-        currentUser: auth.currentUser?.uid,
-        isCurrentUser: isCurrentUser,
-        isAdminMessage: isAdminMessage
-    });
-    
-    let messageClass = 'message me firebase-message personal';
-    let senderName = '';
-    
-    if (isCurrentUser) {
-        messageClass = 'message user firebase-message personal';
-        senderName = `<div class="user-badge">💬 You <span class="private-badge">🔒 Private</span></div>`;
-    } else if (isAdminMessage) {
-        messageClass = 'message admin firebase-message personal';
-        senderName = `<div class="admin-badge">👑 Shaurya <span class="private-badge">🔒 Private</span></div>`;
-    } else {
-        messageClass = 'message me firebase-message personal';
-        senderName = `<div class="user-badge">👤 ${message.senderName} <span class="private-badge">🔒 Private</span></div>`;
-    }
-    
-    messageElement.className = messageClass;
-    
-    // Format timestamp safely
-    let formattedTime = 'Just now';
-    try {
-        const time = message.timestamp ? message.timestamp.toDate() : new Date();
-        formattedTime = time.toLocaleTimeString('en-US', {
-            hour: '2-digit',
-            minute: '2-digit'
-        });
-    } catch (error) {
-        console.error('Error formatting time:', error);
-    }
-    
-    messageElement.innerHTML = `
-        ${senderName}
-        <p>${message.message || 'No message content'}</p>
-        <div class="message-footer">
-            <span class="message-time">${formattedTime}</span>
-        </div>
-    `;
-    
-    chatMessages.appendChild(messageElement);
-}
-
-// Enhanced Send Personal Message Function
-function sendPersonalMessage() {
-    const message = chatInput.value.trim();
-    if (!message) return;
-    
-    const user = auth.currentUser;
-    if (!user || !currentPersonalChatUser) {
-        alert('You need to be logged in and select a user to chat with');
-        return;
-    }
-    
-    const chatId = [user.uid, currentPersonalChatUser.uid].sort().join('_');
-    
-    console.log('Sending personal message:', { // Debug log
-        chatId: chatId,
-        senderId: user.uid,
-        receiverId: currentPersonalChatUser.uid,
-        message: message
-    });
-    
-    // Send personal message
-    db.collection('personalMessages').add({
-        chatId: chatId,
-        senderId: user.uid,
-        senderName: user.displayName || 'Anonymous',
-        senderEmail: user.email,
-        receiverId: currentPersonalChatUser.uid,
-        message: message,
-        timestamp: firebase.firestore.FieldValue.serverTimestamp()
-    })
-    .then((docRef) => {
-        console.log('Personal message sent with ID:', docRef.id); // Debug log
-        chatInput.value = '';
-        
-        // Update personal chat document
-        return db.collection('personalChats').doc(chatId).set({
-            participants: [user.uid, currentPersonalChatUser.uid],
-            lastMessage: message,
-            lastMessageTime: firebase.firestore.FieldValue.serverTimestamp(),
-            updatedAt: firebase.firestore.FieldValue.serverTimestamp()
-        }, { merge: true });
-    })
-    .then(() => {
-        console.log('Personal chat updated successfully'); // Debug log
-    })
-    .catch((error) => {
-        console.error('Error sending personal message:', error);
-        alert('Error sending message. Please try again.');
-    });
-}
-
-// Update the main sendMessage function to use the correct function
-function sendMessage() {
-    const message = chatInput.value.trim();
-    if (!message) return;
-    
-    const user = auth.currentUser;
-    if (!user) {
-        alert('You need to be logged in to send messages');
-        return;
-    }
-    
-    if (currentChatMode === 'group') {
-        // Send group message
-        const isAdmin = user.email === ADMIN_EMAIL;
-        
-        db.collection('groupMessages').add({
-            userId: user.uid,
-            userName: user.displayName || 'Anonymous',
-            message: message,
-            isAdmin: isAdmin,
-            timestamp: firebase.firestore.FieldValue.serverTimestamp()
-        })
-        .then(() => {
-            chatInput.value = '';
-        })
-        .catch((error) => {
-            console.error('Error sending group message:', error);
-            alert('Error sending message. Please try again.');
-        });
-    } else if (currentChatMode === 'personal' && currentPersonalChatUser) {
-        // Use the enhanced personal message function
-        sendPersonalMessage();
-    } else {
-        alert('Please select a user to chat with in personal mode');
-    }
-}
-
-// Enhanced Start Personal Chat with Debugging
+// Start Personal Chat
 function startPersonalChat(userId, userName) {
-    console.log('Starting personal chat with:', { userId, userName }); // Debug log
-    
     if (currentChatMode !== 'personal') {
         const personalChatBtn = document.querySelector('[data-mode="personal"]');
         if (personalChatBtn) {
@@ -2280,14 +2040,241 @@ function completePersonalChatStart(userId, userName) {
         }
     });
     
-    // Clear any existing messages first
+    // Clear existing messages
     const existingMessages = document.querySelectorAll('.firebase-message');
     existingMessages.forEach(msg => msg.remove());
     
-    console.log('Loading personal messages for user:', userId); // Debug log
     loadPersonalChatMessages(userId);
-            }
-                        
+}
+
+// Load Personal Chat Messages
+function loadPersonalChatMessages(otherUserId) {
+    const user = auth.currentUser;
+    if (!user) return;
+    
+    // Unsubscribe from previous channel
+    if (personalChannel) {
+        personalChannel.unbind_all();
+        personalChannel.unsubscribe();
+    }
+    
+    // Generate unique channel name for this chat
+    const channelName = `private-chat-${[user.uid, otherUserId].sort().join('-')}`;
+    
+    // Subscribe to the personal chat channel
+    personalChannel = pusher.subscribe(channelName);
+    
+    // Show loading message
+    const loadingMsg = document.createElement('div');
+    loadingMsg.className = 'no-chat-selected';
+    loadingMsg.innerHTML = `
+        <i class="fas fa-spinner fa-spin"></i>
+        <h3>Loading conversation...</h3>
+    `;
+    chatMessages.appendChild(loadingMsg);
+    
+    // Listen for new messages
+    personalChannel.bind('client-message', (data) => {
+        // Remove loading message
+        const loadingMsg = document.querySelector('.no-chat-selected');
+        if (loadingMsg) loadingMsg.remove();
+        
+        displayPersonalMessage(data);
+        chatMessages.scrollTop = chatMessages.scrollHeight;
+    });
+    
+    // Load message history from localStorage (or you can use Firebase for persistence)
+    loadMessageHistory(channelName);
+}
+
+// Load message history from localStorage
+function loadMessageHistory(channelName) {
+    const history = JSON.parse(localStorage.getItem(`chat-${channelName}`)) || [];
+    
+    // Remove loading message
+    const loadingMsg = document.querySelector('.no-chat-selected');
+    if (loadingMsg) loadingMsg.remove();
+    
+    if (history.length === 0) {
+        const emptyMsg = document.createElement('div');
+        emptyMsg.className = 'no-chat-selected';
+        emptyMsg.innerHTML = `
+            <i class="fas fa-comments"></i>
+            <h3>Start a conversation</h3>
+            <p>Send a message to begin your private chat with ${currentPersonalChatUser.name}</p>
+        `;
+        chatMessages.appendChild(emptyMsg);
+    } else {
+        history.forEach(message => {
+            displayPersonalMessage(message);
+        });
+        chatMessages.scrollTop = chatMessages.scrollHeight;
+    }
+}
+
+// Save message to history
+function saveMessageToHistory(channelName, message) {
+    const history = JSON.parse(localStorage.getItem(`chat-${channelName}`)) || [];
+    history.push(message);
+    localStorage.setItem(`chat-${channelName}`, JSON.stringify(history));
+}
+
+// Display Personal Message
+function displayPersonalMessage(message) {
+    const messageElement = document.createElement('div');
+    
+    const isCurrentUser = auth.currentUser && auth.currentUser.uid === message.senderId;
+    const isAdminMessage = message.senderEmail === ADMIN_EMAIL;
+    
+    let messageClass = 'message me firebase-message personal';
+    let senderName = '';
+    
+    if (isCurrentUser) {
+        messageClass = 'message user firebase-message personal';
+        senderName = `<div class="user-badge">💬 You <span class="private-badge">🔒 Private</span></div>`;
+    } else if (isAdminMessage) {
+        messageClass = 'message admin firebase-message personal';
+        senderName = `<div class="admin-badge">👑 Shaurya <span class="private-badge">🔒 Private</span></div>`;
+    } else {
+        messageClass = 'message me firebase-message personal';
+        senderName = `<div class="user-badge">👤 ${message.senderName} <span class="private-badge">🔒 Private</span></div>`;
+    }
+    
+    messageElement.className = messageClass;
+    
+    const time = new Date(message.timestamp);
+    const formattedTime = time.toLocaleTimeString('en-US', {
+        hour: '2-digit',
+        minute: '2-digit'
+    });
+    
+    messageElement.innerHTML = `
+        ${senderName}
+        <p>${message.message}</p>
+        <div class="message-footer">
+            <span class="message-time">${formattedTime}</span>
+        </div>
+    `;
+    
+    chatMessages.appendChild(messageElement);
+}
+
+// Send Personal Message
+function sendPersonalMessage() {
+    const message = chatInput.value.trim();
+    if (!message || !currentPersonalChatUser) return;
+    
+    const user = auth.currentUser;
+    if (!user) {
+        alert('You need to be logged in to send messages');
+        return;
+    }
+    
+    const messageData = {
+        senderId: user.uid,
+        senderName: user.displayName || 'Anonymous',
+        senderEmail: user.email,
+        receiverId: currentPersonalChatUser.uid,
+        message: message,
+        timestamp: Date.now()
+    };
+    
+    // Generate channel name
+    const channelName = `private-chat-${[user.uid, currentPersonalChatUser.uid].sort().join('-')}`;
+    
+    // Trigger event on Pusher channel
+    if (personalChannel) {
+        personalChannel.trigger('client-message', messageData);
+        
+        // Save to history
+        saveMessageToHistory(channelName, messageData);
+        
+        chatInput.value = '';
+        chatMessages.scrollTop = chatMessages.scrollHeight;
+    }
+}
+
+// Update the sendMessage function to use Pusher for personal chat
+function sendMessage() {
+    const message = chatInput.value.trim();
+    if (!message) return;
+    
+    const user = auth.currentUser;
+    if (!user) {
+        alert('You need to be logged in to send messages');
+        return;
+    }
+    
+    if (currentChatMode === 'group') {
+        // Send group message (keep existing Firebase code)
+        const isAdmin = user.email === ADMIN_EMAIL;
+        
+        db.collection('groupMessages').add({
+            userId: user.uid,
+            userName: user.displayName || 'Anonymous',
+            message: message,
+            isAdmin: isAdmin,
+            timestamp: firebase.firestore.FieldValue.serverTimestamp()
+        })
+        .then(() => {
+            chatInput.value = '';
+        })
+        .catch((error) => {
+            console.error('Error sending group message:', error);
+            alert('Error sending message. Please try again.');
+        });
+    } else if (currentChatMode === 'personal' && currentPersonalChatUser) {
+        // Send personal message using Pusher
+        sendPersonalMessage();
+    } else {
+        alert('Please select a user to chat with in personal mode');
+    }
+}
+
+// Update auth state listener to initialize Pusher
+auth.onAuthStateChanged((user) => {
+    if (user) {
+        db.collection('users').doc(user.uid).get()
+            .then((doc) => {
+                if (doc.exists) {
+                    const userData = doc.data();
+                    loginScreen.style.display = 'none';
+                    dashboard.style.display = 'block';
+                    welcomeMessage.textContent = `Welcome to the Cosmos, ${userData.name}!`;
+                    
+                    // Initialize Pusher
+                    initializePusher(user.uid);
+                    
+                    checkAdminStatus(user);
+                    loadStories();
+                    loadGroupChatMessages();
+                    
+                    const onlineRef = db.collection('onlineUsers');
+                    const userStatusRef = onlineRef.doc(user.uid);
+                    userStatusRef.set({
+                        uid: user.uid,
+                        email: user.email,
+                        name: user.displayName || 'Anonymous',
+                        lastSeen: firebase.firestore.FieldValue.serverTimestamp(),
+                        isOnline: true
+                    });
+                }
+            });
+    } else {
+        dashboard.style.display = 'none';
+        adminControls.style.display = 'none';
+        userListPanel.style.display = 'none';
+        loginScreen.style.display = 'flex';
+        
+        if (groupChatListener) {
+            groupChatListener();
+        }
+        // Clean up Pusher
+        if (pusher) {
+            pusher.disconnect();
+        }
+    }
+});
         // Load Group Chat Messages
         function loadGroupChatMessages() {
             const existingMessages = document.querySelectorAll('.firebase-message');
